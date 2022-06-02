@@ -2,15 +2,23 @@ package components
 
 import (
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	style = lipgloss.NewStyle().Padding(1, 0).Border(lipgloss.NormalBorder())
 )
 
 type state int
 
 type Urlbar struct {
-	Url   textinput.Model
-	Title string
-	State state
+	Url      textinput.Model
+	Viewport viewport.Model
+	Title    string
+	State    state
+	Parent   tea.Model
 }
 
 const (
@@ -18,12 +26,17 @@ const (
 	Finished
 )
 
-func MakeUrlbar(url string, title string) Urlbar {
+func MakeUrlbar(url string, title string, parent tea.Model) Urlbar {
 	m := Urlbar{
-		Url:   textinput.New(),
-		Title: title,
-		State: Typing,
+		Url:    textinput.New(),
+		Title:  title,
+		State:  Typing,
+		Parent: parent,
 	}
+
+	p := parent.(*MainModel)
+
+	style = style.Width(p.Viewport.Width - 2)
 	m.Url.Focus()
 	m.Url.SetValue(url)
 	return m
@@ -40,6 +53,8 @@ func (m Urlbar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+
 	case tea.KeyMsg:
 		s := msg.String()
 		switch s {
@@ -68,5 +83,5 @@ func (m Urlbar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Urlbar) View() string {
-	return m.Url.View()
+	return style.Render(m.Url.View())
 }
