@@ -28,21 +28,26 @@ func (m MainModel) Init() tea.Cmd {
 
 func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
+	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		s := msg.String()
 		switch s {
-		case "ctrl+c", "esc", "q":
+		case "ctrl+c":
 			return m, tea.Quit
 
 		}
 	}
+
+	urlbarmodel, cmd := m.urlbar.Update(msg)
+	cmds = append(cmds, cmd)
+	m.urlbar = urlbarmodel.(components.Urlbar)
 	return m, tea.Batch(cmds...)
 }
 
 func (m MainModel) View() string {
-	return "hello world" + m.urlbar.View()
+	return m.urlbar.View()
 }
 
 func main() {
