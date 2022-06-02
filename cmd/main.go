@@ -5,18 +5,24 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/mustafasegf/neoman/components"
 )
 
-type MainModel struct{}
+type MainModel struct {
+	urlbar components.Urlbar
+}
 
 func initialModel() MainModel {
-	m := MainModel{}
+	m := MainModel{
+		urlbar: components.MakeUrlbar("ini url", ""),
+	}
 
 	return m
 }
 
 func (m MainModel) Init() tea.Cmd {
 	var cmds []tea.Cmd
+	cmds = append(cmds, m.urlbar.Init())
 	return tea.Batch(cmds...)
 }
 
@@ -36,7 +42,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m MainModel) View() string {
-	return "hello world"
+	return "hello world" + m.urlbar.View()
 }
 
 func main() {
