@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	style = lipgloss.NewStyle().Padding(1, 0).Border(lipgloss.NormalBorder())
+	style = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
 )
 
 type state int
