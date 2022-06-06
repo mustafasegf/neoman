@@ -1,6 +1,8 @@
 package components
 
 import (
+	"log"
+
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -57,6 +59,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		s := msg.String()
 		switch s {
 		case "ctrl+c":
+			log.Println("----------")
 			return m, tea.Quit
 		case "ctrl+b":
 			var width int
@@ -68,6 +71,8 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				width = -50
 			}
 			m.urlbar.Update(UpdateSize{Width: width})
+		case "up", "down":
+			m.sidebar.Update(msg)
 		}
 	}
 
