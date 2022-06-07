@@ -6,12 +6,14 @@ type state int
 
 const (
 	Typing state = iota
-	Finished
-)
-
-const (
-	Close state = iota
+	Focus
+	Blur
+	Close
 	Open
 )
 
 type UpdateSize tea.WindowSizeMsg
+
+type UpdateFocus struct {
+	Name string
+}

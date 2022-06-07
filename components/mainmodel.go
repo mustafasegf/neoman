@@ -35,6 +35,24 @@ func (m MainModel) InitComponent(size tea.WindowSizeMsg) MainModel {
 	return m
 }
 
+func (m MainModel) HandleFocus() MainModel {
+	var msg UpdateFocus
+	if m.urlbar.State == Focus {
+		msg = UpdateFocus{Name: "sidebar"}
+	} else if m.sidebar.State == Focus {
+		msg = UpdateFocus{Name: "urlbar"}
+	}
+	cmds := []tea.Cmd{}
+	var cmd tea.Cmd
+	mdl, cmd := m.sidebar.Update(msg)
+	cmds = append(cmds, cmd)
+	m.sidebar = mdl.(SideBar)
+	mdl, cmd = m.urlbar.Update(msg)
+	cmds = append(cmds, cmd)
+	m.urlbar = mdl.(Urlbar)
+	return m
+}
+
 func (m MainModel) Init() tea.Cmd {
 	var cmds []tea.Cmd
 	cmds = append(cmds, m.urlbar.Init())
@@ -73,12 +91,18 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.urlbar.Update(UpdateSize{Width: width})
 		case "up", "down":
 			m.sidebar.Update(msg)
+		case "tab":
+			m = m.HandleFocus()
+
+			cmds = append(cmds, cmd)
+		default:
+			urlbarmodel, cmd := m.urlbar.Update(msg)
+			cmds = append(cmds, cmd)
+			m.urlbar = urlbarmodel.(Urlbar)
+
 		}
 	}
 
-	urlbarmodel, cmd := m.urlbar.Update(msg)
-	cmds = append(cmds, cmd)
-	m.urlbar = urlbarmodel.(Urlbar)
 	return m, tea.Batch(cmds...)
 }
 

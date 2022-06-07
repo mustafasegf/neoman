@@ -43,7 +43,18 @@ func (m Urlbar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case UpdateSize:
 		m.Style = m.Style.Width(m.Style.GetWidth() + msg.Width)
+	case UpdateFocus:
+		if msg.Name == "urlbar" {
+			m.State = Focus
+		} else {
+			m.State = Blur
+		}
+
 	case tea.KeyMsg:
+		if m.State == Blur {
+			return m, tea.Batch(cmds...)
+		}
+
 		s := msg.String()
 		switch s {
 		case "i":
@@ -56,7 +67,7 @@ func (m Urlbar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "esc":
 			m.Url.Blur()
-			m.State = Finished
+			m.State = Blur
 		default:
 			m.Url, cmd = m.Url.Update(msg)
 			cmds = append(cmds, cmd)

@@ -111,16 +111,6 @@ func (m *Items) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-/* func (i Items) PrintTree(d int) string {
-	if i.Typ == Root {
-		return ""
-	}
-	if i.Prev != nil {
-		return i.Name + "\n" + i.Prev.PrintTree(d)
-	}
-	return i.Name + "\n"
-} */
-
 func (i Items) PrintTree(d int) string {
 	if i.Typ == Root {
 		d--
@@ -141,11 +131,6 @@ func (i Items) PrintTree(d int) string {
 
 func (m Items) View() string {
 	return m.PrintTree(0)
-	/* i := &m
-	for i.Next != nil {
-		i = i.Next
-	}
-	return i.PrintTree(0) */
 }
 
 type SideBar struct {
@@ -162,6 +147,7 @@ func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model
 		Parent: parent,
 		Style:  lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(updateSize.Width - 2).Height(size.Height - 2),
 		Items:  r,
+		State:  Focus,
 	}
 
 	f := NewItems("folder", Folder)
@@ -180,15 +166,24 @@ func (m SideBar) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *SideBar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m SideBar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 	case UpdateSize:
 		m.Style = m.Style.MarginLeft(msg.Width).Width(m.Style.GetWidth() - msg.Width)
+	case UpdateFocus:
+		if msg.Name == "sidebar" {
+			m.State = Focus
+		} else {
+			m.State = Blur
+		}
 	case tea.KeyMsg:
 		s := msg.String()
+		if m.State == Blur {
+			return m, tea.Batch(cmds...)
+		}
 		switch s {
 		case "down", "up":
 			m.Items.Update(msg)
