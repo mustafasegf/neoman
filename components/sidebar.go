@@ -22,62 +22,65 @@ const (
 type Items struct {
 	Name     string
 	Typ      int
-	Children []*Items
+	Children []Items
 	Prev     *Items
 	Next     *Items
 	Parent   *Items
 	Selected bool
 }
 
-func NewItems(name string, typ int) *Items {
-	return &Items{
+func MakeItems(name string, typ int) Items {
+	return Items{
 		Name:     name,
 		Typ:      typ,
-		Children: []*Items{},
+		Children: []Items{},
 		Selected: false,
 	}
 }
 
-func (p *Items) Add(parent, n *Items) *Items {
-	n.Parent = parent
+func (p *Items) Add(parent, n Items) *Items {
+	n.Parent = &parent
 	parent.Children = append(parent.Children, n)
 
 	if p.Next == nil {
-		p.Next = n
+		p.Next = &n
 		n.Prev = p
 	} else {
 		n.Prev = p
 		n.Next = p.Next
 
-		n.Next.Prev = n
-		n.Prev.Next = n
+		n.Next.Prev = &n
+		n.Prev.Next = &n
 	}
 
+	tmp := &n
 	for n.Next != nil {
-		n = n.Next
+		tmp = n.Next
 	}
 
-	return n
+	return tmp
 }
 
-func (i *Items) SelectNext() {
+func (i Items) SelectNext() Items {
 	if i.Next == nil {
-		return
+		return i
 	}
 	i.Selected = false
 	i.Next.Selected = true
+	return i
 }
 
-func (i *Items) SelectPrev() {
+func (i Items) SelectPrev() Items {
 	if i.Prev == nil {
-		return
+		return i
 	}
 	if i.Prev.Typ == Root {
-		return
+		return i
 	}
 
 	i.Prev.Selected = true
 	i.Selected = false
+	return i
 }
 func (m Items) Init() tea.Cmd {
 	var cmds []tea.Cmd
@@ -138,11 +141,11 @@ type SideBar struct {
 	Parent   tea.Model
 	Style    lipgloss.Style
 	State    state
-	Items    *Items
+	Items    Items
 }
 
 func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model) SideBar {
-	r := NewItems("", Root)
+	r := MakeItems("", Root)
 	m := SideBar{
 		Parent: parent,
 		Style:  lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(updateSize.Width - 2).Height(size.Height - 2),
@@ -150,11 +153,11 @@ func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model
 		State:  Focus,
 	}
 
-	f := NewItems("folder", Folder)
-	f2 := NewItems("folder 2", Folder)
-	f2.Add(f2, NewItems("item 6", Req))
-	f.Add(f, NewItems("item 4", Req)).Add(f, NewItems("item 5", Req)).Add(f, f2)
-	r.Add(r, NewItems("item 1", Req)).Add(r, NewItems("item 2", Req)).Add(r, NewItems("item 3", Req)).Add(r, f).Add(r, NewItems("item 7", Req))
+	f := MakeItems("folder", Folder)
+	// f2 := MakeItems("folder 2", Folder)
+	// f2.Add(f2, MakeItems("item 6", Req))
+	// f.Add(f, MakeItems("item 4", Req)).Add(f, MakeItems("item 5", Req)).Add(f, f2)
+	r.Add(r, MakeItems("item 1", Req)).Add(r, MakeItems("item 2", Req)).Add(r, MakeItems("item 3", Req)).Add(r, f).Add(r, MakeItems("item 7", Req))
 	r.Next.Selected = true
 
 	return m
