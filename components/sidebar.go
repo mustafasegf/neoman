@@ -9,9 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	SelectedItemsStyle lipgloss.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("201"))
-)
+var SelectedItemsStyle lipgloss.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("201"))
 
 const (
 	Root = iota
@@ -22,7 +20,7 @@ const (
 type Items struct {
 	Name     string
 	Typ      int
-	Children []Items
+	Children []*Items
 	Prev     *Items
 	Next     *Items
 	Parent   *Items
@@ -33,61 +31,71 @@ func MakeItems(name string, typ int) Items {
 	return Items{
 		Name:     name,
 		Typ:      typ,
-		Children: []Items{},
+		Children: make([]*Items, 0),
 		Selected: false,
 	}
 }
 
-func (p *Items) Add(parent, n Items) *Items {
-	n.Parent = &parent
+func NewItems(name string, typ int) *Items {
+	return &Items{
+		Name:     name,
+		Typ:      typ,
+		Children: make([]*Items, 0),
+		Selected: false,
+	}
+}
+
+func (p *Items) Add(parent, n *Items) (next *Items) {
+	n.Parent = parent
 	parent.Children = append(parent.Children, n)
 
 	if p.Next == nil {
-		p.Next = &n
+		p.Next = n
 		n.Prev = p
 	} else {
 		n.Prev = p
 		n.Next = p.Next
 
-		n.Next.Prev = &n
-		n.Prev.Next = &n
+		n.Next.Prev = n
+		n.Prev.Next = n
 	}
 
-	tmp := &n
+	next = n
 	for n.Next != nil {
-		tmp = n.Next
+		next = n.Next
 	}
 
-	return tmp
+	return next
 }
 
-func (i Items) SelectNext() Items {
+func (i *Items) SelectNext() {
 	if i.Next == nil {
-		return i
+		return
 	}
 	i.Selected = false
 	i.Next.Selected = true
-	return i
+	return
 }
 
-func (i Items) SelectPrev() Items {
+func (i *Items) SelectPrev() {
 	if i.Prev == nil {
-		return i
+		return
 	}
 	if i.Prev.Typ == Root {
-		return i
+		return
 	}
 
 	i.Prev.Selected = true
 	i.Selected = false
-	return i
+	return
 }
+
 func (m Items) Init() tea.Cmd {
 	var cmds []tea.Cmd
 	return tea.Batch(cmds...)
 }
 
-func (m *Items) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Items) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
@@ -99,7 +107,10 @@ func (m *Items) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.Next.Selected {
 				m.Next.SelectNext()
 			} else {
-				m.Next.Update(msg)
+				mdl, cmd := m.Next.Update(msg)
+				mdlItem := mdl.(Items)
+				m.Next = &mdlItem
+				cmds = append(cmds, cmd)
 			}
 
 		case "up":
@@ -107,6 +118,10 @@ func (m *Items) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Next.SelectPrev()
 			} else {
 				m.Next.Update(msg)
+				mdl, cmd := m.Next.Update(msg)
+				mdlItem := mdl.(Items)
+				m.Next = &mdlItem
+				cmds = append(cmds, cmd)
 			}
 		}
 	}
@@ -145,21 +160,26 @@ type SideBar struct {
 }
 
 func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model) SideBar {
-	r := MakeItems("", Root)
-	m := SideBar{
-		Parent: parent,
-		Style:  lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(updateSize.Width - 2).Height(size.Height - 2),
-		Items:  r,
-		State:  Focus,
-	}
+	r := NewItems("", Root)
 
-	f := MakeItems("folder", Folder)
+	// f := MakeItems("folder", Folder)
 	// f2 := MakeItems("folder 2", Folder)
 	// f2.Add(f2, MakeItems("item 6", Req))
 	// f.Add(f, MakeItems("item 4", Req)).Add(f, MakeItems("item 5", Req)).Add(f, f2)
-	r.Add(r, MakeItems("item 1", Req)).Add(r, MakeItems("item 2", Req)).Add(r, MakeItems("item 3", Req)).Add(r, f).Add(r, MakeItems("item 7", Req))
+	r.Add(r, NewItems("item 1", Req)).Add(r, NewItems("item 2", Req)).Add(r, NewItems("item 3", Req))
+
+	// .Add(r, f).Add(r, MakeItems("item 7", Req))
 	r.Next.Selected = true
 
+	// log.Printf("%#v", r)
+	/* log.Printf("%#v", r.Next)
+	log.Printf("%#v", r.Next.Next) */
+	m := SideBar{
+		Parent: parent,
+		Style:  lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(updateSize.Width - 2).Height(size.Height - 2),
+		Items:  *r,
+		State:  Focus,
+	}
 	return m
 }
 
@@ -189,10 +209,12 @@ func (m SideBar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch s {
 		case "down", "up":
-			m.Items.Update(msg)
+			mdl, cmd := m.Items.Update(msg)
+			i := mdl.(Items)
+			m.Items = i
+			cmds = append(cmds, cmd)
 		}
 	}
-
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
 }

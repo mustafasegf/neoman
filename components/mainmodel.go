@@ -90,7 +90,9 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.urlbar.Update(UpdateSize{Width: width})
 		case "up", "down":
-			m.sidebar.Update(msg)
+			mdl, cmd := m.sidebar.Update(msg)
+			cmds = append(cmds, cmd)
+			m.sidebar = mdl.(SideBar)
 		case "tab":
 			m = m.HandleFocus()
 

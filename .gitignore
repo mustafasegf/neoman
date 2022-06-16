@@ -29,3 +29,4 @@ tmp
 logs
 .env
 *postman_collection.json
+_current_session

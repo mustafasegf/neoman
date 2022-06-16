@@ -11,6 +11,7 @@ import (
 
 func main() {
 	logger.SetLogger()
+
 	if err := tea.NewProgram(components.InitialModel(), tea.WithAltScreen()).Start(); err != nil {
 		fmt.Printf("could not start program: %s\n", err)
 		os.Exit(1)
