@@ -12,7 +12,8 @@ import (
 var SelectedItemsStyle lipgloss.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("201"))
 
 const (
-	Root = iota
+	Head = iota
+	Tail
 	Folder
 	Req
 )
@@ -61,9 +62,9 @@ func (p *Items) Add(parent, n *Items) (next *Items) {
 	}
 
 	next = n
-	for n.Next != nil {
-		next = n.Next
-	}
+	// for n.Next != nil && n.Next.Typ != Tail {
+	// 	next = n.Next
+	// }
 
 	return next
 }
@@ -72,6 +73,11 @@ func (i *Items) SelectNext() {
 	if i.Next == nil {
 		return
 	}
+
+	if i.Next.Typ == Tail {
+		return
+	}
+
 	i.Selected = false
 	i.Next.Selected = true
 	return
@@ -81,21 +87,22 @@ func (i *Items) SelectPrev() {
 	if i.Prev == nil {
 		return
 	}
-	if i.Prev.Typ == Root {
+
+	if i.Prev.Typ == Head {
 		return
 	}
 
-	i.Prev.Selected = true
 	i.Selected = false
+	i.Prev.Selected = true
 	return
 }
 
-func (m Items) Init() tea.Cmd {
+func (m *Items) Init() tea.Cmd {
 	var cmds []tea.Cmd
 	return tea.Batch(cmds...)
 }
 
-func (m Items) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Items) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
@@ -107,48 +114,71 @@ func (m Items) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.Next.Selected {
 				m.Next.SelectNext()
 			} else {
-				mdl, cmd := m.Next.Update(msg)
-				mdlItem := mdl.(Items)
-				m.Next = &mdlItem
+				cmd := m.Next.Update(msg)
 				cmds = append(cmds, cmd)
 			}
 
 		case "up":
-			if m.Next.Selected {
-				m.Next.SelectPrev()
+			if m.Prev.Selected {
+				m.Prev.SelectPrev()
 			} else {
-				m.Next.Update(msg)
-				mdl, cmd := m.Next.Update(msg)
-				mdlItem := mdl.(Items)
-				m.Next = &mdlItem
+				cmd := m.Prev.Update(msg)
 				cmds = append(cmds, cmd)
 			}
 		}
 	}
 	cmds = append(cmds, cmd)
-	return m, tea.Batch(cmds...)
+	return tea.Batch(cmds...)
 }
 
 func (i Items) PrintTree(d int) string {
-	if i.Typ == Root {
+	if i.Typ == Head {
 		d--
 	}
+
 	var str string
 	for _, child := range i.Children {
 		str += child.PrintTree(d + 1)
 	}
-	if i.Typ == Root {
+
+	if i.Typ == Head {
 		return str
 	}
 
 	if i.Selected {
 		return SelectedItemsStyle.Render(strings.Repeat("-", d)+i.Name) + "\n" + str
 	}
+
 	return strings.Repeat("-", d) + i.Name + "\n" + str
 }
 
-func (m Items) View() string {
-	return m.PrintTree(0)
+func (i Items) PrintHead() string {
+	if i.Typ == Head {
+		return i.Next.PrintHead()
+	}
+
+	if i.Typ == Tail {
+		return ""
+	}
+	if i.Selected {
+		return SelectedItemsStyle.Render(i.Name) + "\n" + i.Next.PrintHead()
+	}
+	return i.Name + "\n" + i.Next.PrintHead()
+}
+
+func (i Items) PrintTail() string {
+	if i.Typ == Tail {
+		return i.Prev.PrintTail()
+	}
+
+	if i.Typ == Head {
+		return ""
+	}
+
+	if i.Selected {
+		return SelectedItemsStyle.Render(i.Name) + "\n" + i.Prev.PrintTail()
+	}
+	return i.Name + "\n" + i.Prev.PrintTail()
 }
 
 type SideBar struct {
@@ -156,28 +186,36 @@ type SideBar struct {
 	Parent   tea.Model
 	Style    lipgloss.Style
 	State    state
-	Items    Items
+	Head     Items
+	Tail     Items
 }
 
 func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model) SideBar {
-	r := NewItems("", Root)
+	head := NewItems("", Head)
 
-	// f := MakeItems("folder", Folder)
-	// f2 := MakeItems("folder 2", Folder)
-	// f2.Add(f2, MakeItems("item 6", Req))
-	// f.Add(f, MakeItems("item 4", Req)).Add(f, MakeItems("item 5", Req)).Add(f, f2)
-	r.Add(r, NewItems("item 1", Req)).Add(r, NewItems("item 2", Req)).Add(r, NewItems("item 3", Req))
+	tail := NewItems("", Tail)
+	head.Add(head, tail)
 
-	// .Add(r, f).Add(r, MakeItems("item 7", Req))
-	r.Next.Selected = true
+	prev := head.Add(head, NewItems("item 1", Req)).
+		Add(head, NewItems("item 2", Req)).
+		Add(head, NewItems("item 3", Req))
 
-	// log.Printf("%#v", r)
-	/* log.Printf("%#v", r.Next)
-	log.Printf("%#v", r.Next.Next) */
+	f1 := NewItems("folder 1", Folder)
+	prev.Add(head, f1)
+	prev = f1.Add(f1, NewItems("item 4", Req)).
+		Add(f1, NewItems("item 5", Req))
+
+	prev.Add(head, NewItems("item 6", Req)).
+		Add(head, NewItems("item 6", Req)).
+		Add(head, NewItems("item 7", Req))
+
+	head.Next.Selected = true
+
 	m := SideBar{
 		Parent: parent,
 		Style:  lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(updateSize.Width - 2).Height(size.Height - 2),
-		Items:  *r,
+		Head:   *head,
+		Tail:   *tail,
 		State:  Focus,
 	}
 	return m
@@ -203,15 +241,18 @@ func (m SideBar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.State = Blur
 		}
 	case tea.KeyMsg:
-		s := msg.String()
 		if m.State == Blur {
 			return m, tea.Batch(cmds...)
 		}
+
+		s := msg.String()
 		switch s {
-		case "down", "up":
-			mdl, cmd := m.Items.Update(msg)
-			i := mdl.(Items)
-			m.Items = i
+		case "down":
+			cmd := m.Head.Update(msg)
+			cmds = append(cmds, cmd)
+
+		case "up":
+			cmd := m.Tail.Update(msg)
 			cmds = append(cmds, cmd)
 		}
 	}
@@ -220,5 +261,6 @@ func (m SideBar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m SideBar) View() string {
-	return m.Style.Render(m.Items.View())
+	return m.Style.Render(m.Head.PrintTree(0))
+	// return m.Style.Render(m.Head.PrintHead() + "\n\n" + m.Tail.PrintTail())
 }
