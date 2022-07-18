@@ -46,6 +46,14 @@ func NewItems(name string, typ int) *Items {
 	}
 }
 
+func (i *Items) Last() *Items {
+	next := i
+	for next.Next != nil && next.Next.Typ != Tail {
+		next = next.Next
+	}
+	return next
+}
+
 func (p *Items) Add(parent, n *Items) (next *Items) {
 	n.Parent = parent
 	parent.Children = append(parent.Children, n)
@@ -54,19 +62,20 @@ func (p *Items) Add(parent, n *Items) (next *Items) {
 		p.Next = n
 		n.Prev = p
 	} else {
-		n.Prev = p
-		n.Next = p.Next
+		// n.Prev = p
+		// n.Next = p.Next
+		//
+		// n.Next.Prev = n
+		// p.Next = n
 
-		n.Next.Prev = n
-		n.Prev.Next = n
+		p.Next.Prev = n.Last()
+		n.Last().Next = p.Next
+
+		p.Next = n
+		n.Prev = p
 	}
 
-	next = n
-	// for n.Next != nil && n.Next.Typ != Tail {
-	// 	next = n.Next
-	// }
-
-	return next
+	return n.Last()
 }
 
 func (i *Items) SelectNext() {
@@ -132,6 +141,9 @@ func (m *Items) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (i Items) PrintTree(d int) string {
+	if i.Typ == Tail {
+		return ""
+	}
 	if i.Typ == Head {
 		d--
 	}
@@ -196,16 +208,16 @@ func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model
 	tail := NewItems("", Tail)
 	head.Add(head, tail)
 
-	prev := head.Add(head, NewItems("item 1", Req)).
+	head.Add(head, NewItems("item 1", Req)).
 		Add(head, NewItems("item 2", Req)).
 		Add(head, NewItems("item 3", Req))
 
 	f1 := NewItems("folder 1", Folder)
-	prev.Add(head, f1)
-	prev = f1.Add(f1, NewItems("item 4", Req)).
+	f1.Add(f1, NewItems("item 4", Req)).
 		Add(f1, NewItems("item 5", Req))
 
-	prev.Add(head, NewItems("item 6", Req)).
+	tail.Prev.Add(head, f1).
+		Add(head, NewItems("item 6", Req)).
 		Add(head, NewItems("item 6", Req)).
 		Add(head, NewItems("item 7", Req))
 
