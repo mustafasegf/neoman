@@ -57,9 +57,14 @@ func (m Urlbar) Update(msg tea.Msg) (Urlbar, tea.Cmd) {
 		}
 
 	case tea.KeyMsg:
-		m.Url, cmd = m.Url.Update(msg)
-		cmds = append(cmds, cmd)
-
+		s := msg.String()
+		switch s {
+		case "enter":
+			cmd = func() tea.Msg {
+				return HttpRequestCmd{}
+			}
+			cmds = append(cmds, cmd)
+		}
 	}
 	m.Url, cmd = m.Url.Update(msg)
 	cmds = append(cmds, cmd)

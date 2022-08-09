@@ -17,3 +17,5 @@ type UpdateSize tea.WindowSizeMsg
 type UpdateFocus struct {
 	Name string
 }
+
+type HttpRequestCmd struct {}

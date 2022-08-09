@@ -1,7 +1,9 @@
 package components
 
 import (
+	"io/ioutil"
 	"log"
+	"net/http"
 
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -112,10 +114,10 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m = m.HandleFocus()
 
 			cmds = append(cmds, cmd)
-		default:
-
 		}
 
+	case HttpRequestCmd:
+		m.HttpRequest()
 	}
 
 	m.urlbar, cmd = m.urlbar.Update(msg)
@@ -127,6 +129,19 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.textbody, cmd = m.textbody.Update(msg)
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
+}
+
+func (m *MainModel) HttpRequest() {
+	res, err := http.Get(m.urlbar.Url.Value())
+	if err != nil {
+		log.Println("http req", err)
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Println("http req", err)
+	}
+	m.textbody.Body.SetValue(string(body))
 }
 
 func (m MainModel) View() string {
