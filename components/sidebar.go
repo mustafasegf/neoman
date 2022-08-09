@@ -223,10 +223,10 @@ func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize) SideBar {
 	head.Next.Selected = true
 
 	m := SideBar{
-		Style:  lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(updateSize.Width - 2).Height(size.Height - 2),
-		Head:   *head,
-		Tail:   *tail,
-		State:  Blur,
+		Style: lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(updateSize.Width - 2).Height(size.Height - 2),
+		Head:  *head,
+		Tail:  *tail,
+		State: Blur,
 	}
 	return m
 }
@@ -243,7 +243,7 @@ func (m SideBar) Update(msg tea.Msg) (SideBar, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case UpdateSize:
-		m.Style = m.Style.MarginLeft(msg.Width).Width(m.Style.GetWidth() - msg.Width)
+		m.Style = m.Style.Width(m.Style.GetWidth() - msg.Width)
 	case UpdateFocus:
 		if msg.Name == "sidebar" {
 			m.State = Focus

@@ -14,6 +14,7 @@ type MainModel struct {
 	urlbar       Urlbar
 	sidebar      SideBar
 	textbody     TextBody
+	responsebody ResponseBody
 	Viewport     viewport.Model
 	Ready        bool
 	focus        string
@@ -37,11 +38,12 @@ func (m MainModel) InitComponent(size tea.WindowSizeMsg) MainModel {
 	m.sidebar = MakeSideBar(size, updateSize)
 	m.urlbar = MakeUrlbar("https://jsonplaceholder.typicode.com/todos/1", "", size, updateSize)
 	m.textbody = MakeTextBody("", size, updateSize)
+	m.responsebody = MakeResponseBody("", size, updateSize)
 	m.focus = "urlbar"
 	return m
 }
 
-func (m MainModel) HandleFocus() MainModel {
+func (m MainModel) HandleFocus() (MainModel, tea.Cmd) {
 	var msg UpdateFocus
 	if m.sidebar.State == Focus {
 		msg = UpdateFocus{Name: "urlbar"}
@@ -50,11 +52,21 @@ func (m MainModel) HandleFocus() MainModel {
 		msg = UpdateFocus{Name: "textbody"}
 		m.focus = "textbody"
 	} else if m.textbody.State == Focus {
+		msg = UpdateFocus{Name: "responsebody"}
+		m.focus = "responsebody"
+	} else if m.responsebody.State == Focus {
 		msg = UpdateFocus{Name: "sidebar"}
 		m.focus = "sidebar"
 	}
-	var cmd tea.Cmd
+
+	cmd := m.UpdateAll(msg)
+
+	return m, cmd
+}
+
+func (m *MainModel) UpdateAll(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
+	var cmd tea.Cmd
 
 	m.urlbar, cmd = m.urlbar.Update(msg)
 	cmds = append(cmds, cmd)
@@ -65,7 +77,10 @@ func (m MainModel) HandleFocus() MainModel {
 	m.textbody, cmd = m.textbody.Update(msg)
 	cmds = append(cmds, cmd)
 
-	return m
+	m.responsebody, cmd = m.responsebody.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return tea.Batch(cmds...)
 }
 
 func (m MainModel) Init() tea.Cmd {
@@ -107,12 +122,12 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				width = -50
 			}
 			m.urlbar.Update(UpdateSize{Width: width})
+			m.textbody.Update(UpdateSize{Width: width})
 		case "up", "down":
 			m.sidebar, cmd = m.sidebar.Update(msg)
 			cmds = append(cmds, cmd)
 		case "tab":
-			m = m.HandleFocus()
-
+			m, cmd = m.HandleFocus()
 			cmds = append(cmds, cmd)
 		}
 
@@ -120,13 +135,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.HttpRequest()
 	}
 
-	m.urlbar, cmd = m.urlbar.Update(msg)
-	cmds = append(cmds, cmd)
-
-	m.sidebar, cmd = m.sidebar.Update(msg)
-	cmds = append(cmds, cmd)
-
-	m.textbody, cmd = m.textbody.Update(msg)
+	cmd = m.UpdateAll(msg)
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
 }
@@ -141,7 +150,7 @@ func (m *MainModel) HttpRequest() {
 	if err != nil {
 		log.Println("http req", err)
 	}
-	m.textbody.Body.SetValue(string(body))
+	m.responsebody.Viewport.SetContent(string(body))
 }
 
 func (m MainModel) View() string {
@@ -151,5 +160,11 @@ func (m MainModel) View() string {
 	if m.SideBarState == Close {
 		return m.urlbar.View()
 	}
-	return lipgloss.JoinHorizontal(lipgloss.Left, m.sidebar.View(), lipgloss.JoinVertical(lipgloss.Bottom, m.urlbar.View(), m.textbody.View()))
+	return lipgloss.JoinHorizontal(lipgloss.Left, m.sidebar.View(),
+		lipgloss.JoinVertical(lipgloss.Bottom,
+			m.urlbar.View(),
+			m.textbody.View(),
+			m.responsebody.View(),
+		),
+	)
 }
