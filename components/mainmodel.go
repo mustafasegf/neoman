@@ -11,8 +11,10 @@ import (
 type MainModel struct {
 	urlbar       Urlbar
 	sidebar      SideBar
+	textbody     TextBody
 	Viewport     viewport.Model
 	Ready        bool
+	focus        string
 	SideBarState state
 	Style        lipgloss.Style
 }
@@ -30,26 +32,40 @@ func InitialModel() MainModel {
 func (m MainModel) InitComponent(size tea.WindowSizeMsg) MainModel {
 	updateSize := UpdateSize{Width: 50, Height: 0}
 
-	m.urlbar = MakeUrlbar("ini url", "", size, updateSize, &m)
 	m.sidebar = MakeSideBar(size, updateSize, &m)
+	m.urlbar = MakeUrlbar("ini url", "", size, updateSize, &m)
+	m.textbody = MakeTextBody("ini body", size, updateSize, &m)
+	m.focus = "urlbar"
 	return m
 }
 
 func (m MainModel) HandleFocus() MainModel {
 	var msg UpdateFocus
-	if m.urlbar.State == Focus {
-		msg = UpdateFocus{Name: "sidebar"}
-	} else if m.sidebar.State == Focus {
+	if m.sidebar.State == Focus {
+    log.Println("sidebar focus")
 		msg = UpdateFocus{Name: "urlbar"}
+		m.focus = "urlbar"
+	} else if m.urlbar.State == Focus {
+    log.Println("urlbar focus")
+		msg = UpdateFocus{Name: "textbody"}
+		m.focus = "textbody"
+	} else if m.textbody.State == Focus {
+    log.Println("textbody focus")
+		msg = UpdateFocus{Name: "sidebar"}
+		m.focus = "sidebar"
 	}
-	cmds := []tea.Cmd{}
-	var cmd tea.Cmd
-	mdl, cmd := m.sidebar.Update(msg)
-	cmds = append(cmds, cmd)
-	m.sidebar = mdl.(SideBar)
-	mdl, cmd = m.urlbar.Update(msg)
-	cmds = append(cmds, cmd)
+	var mdl tea.Model
+
+	mdl, _ = m.urlbar.Update(msg)
 	m.urlbar = mdl.(Urlbar)
+
+	mdl, _ = m.sidebar.Update(msg)
+  m.sidebar = mdl.(SideBar)
+
+	mdl, _ = m.textbody.Update(msg)
+  m.textbody = mdl.(TextBody)
+
+	log.Println("focus:", m.focus)
 	return m
 }
 
@@ -115,5 +131,5 @@ func (m MainModel) View() string {
 	if m.SideBarState == Close {
 		return m.urlbar.View()
 	}
-	return lipgloss.JoinHorizontal(lipgloss.Left, m.sidebar.View(), m.urlbar.View())
+	return lipgloss.JoinHorizontal(lipgloss.Left, m.sidebar.View(), lipgloss.JoinVertical(lipgloss.Bottom, m.urlbar.View(), m.textbody.View()))
 }

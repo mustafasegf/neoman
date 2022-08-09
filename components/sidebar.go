@@ -228,7 +228,7 @@ func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model
 		Style:  lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(updateSize.Width - 2).Height(size.Height - 2),
 		Head:   *head,
 		Tail:   *tail,
-		State:  Focus,
+		State:  Blur,
 	}
 	return m
 }
@@ -249,8 +249,10 @@ func (m SideBar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case UpdateFocus:
 		if msg.Name == "sidebar" {
 			m.State = Focus
+			m.Style = m.Style.BorderForeground(lipgloss.Color("201"))
 		} else {
 			m.State = Blur
+			m.Style = m.Style.BorderForeground(lipgloss.Color("255"))
 		}
 	case tea.KeyMsg:
 		if m.State == Blur {

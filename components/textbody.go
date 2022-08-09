@@ -7,36 +7,33 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type Urlbar struct {
-	Url      textinput.Model
+type TextBody struct {
+	Body      textinput.Model
 	Viewport viewport.Model
-	Title    string
 	State    state
 	Parent   tea.Model
 	Style    lipgloss.Style
 }
 
-func MakeUrlbar(url string, title string, size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model) Urlbar {
-	m := Urlbar{
-		Url:    textinput.New(),
-		Title:  title,
-		State:  Focus,
+func MakeTextBody(body string, size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model) TextBody {
+	m := TextBody{
+		Body:    textinput.New(),
+		State:  Typing,
 		Parent: parent,
-		Style:  lipgloss.NewStyle().Border(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("201")).Width(size.Width - 2 - updateSize.Width),
+		Style:  lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(size.Width - 2 - updateSize.Width),
 	}
+  m.Body.SetValue(body)
 
-	m.Url.Focus()
-	m.Url.SetValue(url)
 	return m
 }
 
-func (m Urlbar) Init() tea.Cmd {
+func (m TextBody) Init() tea.Cmd {
 	var cmds []tea.Cmd
 	cmds = append(cmds, textinput.Blink)
 	return tea.Batch(cmds...)
 }
 
-func (m Urlbar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m TextBody) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
@@ -44,7 +41,7 @@ func (m Urlbar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case UpdateSize:
 		m.Style = m.Style.Width(m.Style.GetWidth() + msg.Width)
 	case UpdateFocus:
-		if msg.Name == "urlbar" {
+		if msg.Name == "textbody" {
 			m.State = Focus
 			m.Style = m.Style.BorderForeground(lipgloss.Color("201"))
 		} else {
@@ -61,28 +58,28 @@ func (m Urlbar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch s {
 		case "i":
 			if m.State == Typing {
-				m.Url, cmd = m.Url.Update(msg)
+				m.Body, cmd = m.Body.Update(msg)
 				cmds = append(cmds, cmd)
 			} else {
 				m.State = Typing
-				cmds = append(cmds, m.Url.Focus())
+				cmds = append(cmds, m.Body.Focus())
 			}
 		case "esc":
-			m.Url.Blur()
+			m.Body.Blur()
 			m.State = Blur
 		default:
-			m.Url, cmd = m.Url.Update(msg)
+			m.Body, cmd = m.Body.Update(msg)
 			cmds = append(cmds, cmd)
 		}
 
 	default:
-		m.Url, cmd = m.Url.Update(msg)
+		m.Body, cmd = m.Body.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
-func (m Urlbar) View() string {
-	return m.Style.Render(m.Url.View())
+func (m TextBody) View() string {
+	return m.Style.Render(m.Body.View())
 }
