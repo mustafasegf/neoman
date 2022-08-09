@@ -16,13 +16,12 @@ type Urlbar struct {
 	Style    lipgloss.Style
 }
 
-func MakeUrlbar(url string, title string, size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model) Urlbar {
+func MakeUrlbar(url string, title string, size tea.WindowSizeMsg, updateSize UpdateSize) Urlbar {
 	m := Urlbar{
-		Url:    textinput.New(),
-		Title:  title,
-		State:  Focus,
-		Parent: parent,
-		Style:  lipgloss.NewStyle().Border(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("201")).Width(size.Width - 2 - updateSize.Width),
+		Url:   textinput.New(),
+		Title: title,
+		State: Focus,
+		Style: lipgloss.NewStyle().Border(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("201")).Width(size.Width - 2 - updateSize.Width),
 	}
 
 	m.Url.Focus()
@@ -36,49 +35,34 @@ func (m Urlbar) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m Urlbar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Urlbar) Update(msg tea.Msg) (Urlbar, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 	case UpdateSize:
 		m.Style = m.Style.Width(m.Style.GetWidth() + msg.Width)
+
 	case UpdateFocus:
 		if msg.Name == "urlbar" {
 			m.State = Focus
+			m.Url.Focus()
+			// cmds = append(cmds, cmd)
 			m.Style = m.Style.BorderForeground(lipgloss.Color("201"))
+			// cmds = append(cmds, textinput.Blink)
 		} else {
 			m.State = Blur
+			m.Url.Blur()
 			m.Style = m.Style.BorderForeground(lipgloss.Color("255"))
 		}
 
 	case tea.KeyMsg:
-		if m.State == Blur {
-			return m, tea.Batch(cmds...)
-		}
-
-		s := msg.String()
-		switch s {
-		case "i":
-			if m.State == Typing {
-				m.Url, cmd = m.Url.Update(msg)
-				cmds = append(cmds, cmd)
-			} else {
-				m.State = Typing
-				cmds = append(cmds, m.Url.Focus())
-			}
-		case "esc":
-			m.Url.Blur()
-			m.State = Blur
-		default:
-			m.Url, cmd = m.Url.Update(msg)
-			cmds = append(cmds, cmd)
-		}
-
-	default:
 		m.Url, cmd = m.Url.Update(msg)
 		cmds = append(cmds, cmd)
+
 	}
+	m.Url, cmd = m.Url.Update(msg)
+	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }

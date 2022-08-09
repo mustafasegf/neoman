@@ -195,14 +195,13 @@ func (i Items) PrintTail() string {
 
 type SideBar struct {
 	Viewport viewport.Model
-	Parent   tea.Model
 	Style    lipgloss.Style
 	State    state
 	Head     Items
 	Tail     Items
 }
 
-func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model) SideBar {
+func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize) SideBar {
 	head := NewItems("", Head)
 
 	tail := NewItems("", Tail)
@@ -224,7 +223,6 @@ func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize, parent tea.Model
 	head.Next.Selected = true
 
 	m := SideBar{
-		Parent: parent,
 		Style:  lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(updateSize.Width - 2).Height(size.Height - 2),
 		Head:   *head,
 		Tail:   *tail,
@@ -239,7 +237,7 @@ func (m SideBar) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m SideBar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m SideBar) Update(msg tea.Msg) (SideBar, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 

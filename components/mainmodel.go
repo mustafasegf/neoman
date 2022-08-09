@@ -32,9 +32,9 @@ func InitialModel() MainModel {
 func (m MainModel) InitComponent(size tea.WindowSizeMsg) MainModel {
 	updateSize := UpdateSize{Width: 50, Height: 0}
 
-	m.sidebar = MakeSideBar(size, updateSize, &m)
-	m.urlbar = MakeUrlbar("ini url", "", size, updateSize, &m)
-	m.textbody = MakeTextBody("ini body", size, updateSize, &m)
+	m.sidebar = MakeSideBar(size, updateSize)
+	m.urlbar = MakeUrlbar("https://jsonplaceholder.typicode.com/todos/1", "", size, updateSize)
+	m.textbody = MakeTextBody("", size, updateSize)
 	m.focus = "urlbar"
 	return m
 }
@@ -42,36 +42,36 @@ func (m MainModel) InitComponent(size tea.WindowSizeMsg) MainModel {
 func (m MainModel) HandleFocus() MainModel {
 	var msg UpdateFocus
 	if m.sidebar.State == Focus {
-    log.Println("sidebar focus")
 		msg = UpdateFocus{Name: "urlbar"}
 		m.focus = "urlbar"
 	} else if m.urlbar.State == Focus {
-    log.Println("urlbar focus")
 		msg = UpdateFocus{Name: "textbody"}
 		m.focus = "textbody"
 	} else if m.textbody.State == Focus {
-    log.Println("textbody focus")
 		msg = UpdateFocus{Name: "sidebar"}
 		m.focus = "sidebar"
 	}
-	var mdl tea.Model
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
 
-	mdl, _ = m.urlbar.Update(msg)
-	m.urlbar = mdl.(Urlbar)
+	m.urlbar, cmd = m.urlbar.Update(msg)
+	cmds = append(cmds, cmd)
 
-	mdl, _ = m.sidebar.Update(msg)
-  m.sidebar = mdl.(SideBar)
+	m.sidebar, cmd = m.sidebar.Update(msg)
+	cmds = append(cmds, cmd)
 
-	mdl, _ = m.textbody.Update(msg)
-  m.textbody = mdl.(TextBody)
+	m.textbody, cmd = m.textbody.Update(msg)
+	cmds = append(cmds, cmd)
 
-	log.Println("focus:", m.focus)
 	return m
 }
 
 func (m MainModel) Init() tea.Cmd {
 	var cmds []tea.Cmd
+
 	cmds = append(cmds, m.urlbar.Init())
+	cmds = append(cmds, m.sidebar.Init())
+	cmds = append(cmds, m.textbody.Init())
 	return tea.Batch(cmds...)
 }
 
@@ -106,21 +106,26 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.urlbar.Update(UpdateSize{Width: width})
 		case "up", "down":
-			mdl, cmd := m.sidebar.Update(msg)
+			m.sidebar, cmd = m.sidebar.Update(msg)
 			cmds = append(cmds, cmd)
-			m.sidebar = mdl.(SideBar)
 		case "tab":
 			m = m.HandleFocus()
 
 			cmds = append(cmds, cmd)
 		default:
-			urlbarmodel, cmd := m.urlbar.Update(msg)
-			cmds = append(cmds, cmd)
-			m.urlbar = urlbarmodel.(Urlbar)
 
 		}
+
 	}
 
+	m.urlbar, cmd = m.urlbar.Update(msg)
+	cmds = append(cmds, cmd)
+
+	m.sidebar, cmd = m.sidebar.Update(msg)
+	cmds = append(cmds, cmd)
+
+	m.textbody, cmd = m.textbody.Update(msg)
+	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
 }
 
