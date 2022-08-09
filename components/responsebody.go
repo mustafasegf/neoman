@@ -16,10 +16,10 @@ type ResponseBody struct {
 
 func MakeResponseBody(body string, size tea.WindowSizeMsg, updateSize UpdateSize) ResponseBody {
 	m := ResponseBody{
-		State: Blur,
-		Style: lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(size.Width - 2 - updateSize.Width).Height(size.Height - 8),
-    Viewport: viewport.New(size.Width - 2 - updateSize.Width, size.Height - 10),
-  }
+		State:    Blur,
+		Style:    lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(size.Width - updateSize.Width - 2).Height(size.Height - 8),
+		Viewport: viewport.New(size.Width-updateSize.Width-2, size.Height-8),
+	}
 
 	return m
 }
@@ -38,6 +38,9 @@ func (m ResponseBody) Update(msg tea.Msg) (ResponseBody, tea.Cmd) {
 	case UpdateSize:
 		m.Style = m.Style.Width(m.Style.GetWidth() + msg.Width)
 
+	case tea.WindowSizeMsg:
+		m.Style = m.Style.Width(m.Style.GetWidth()).Height(msg.Height - 8)
+
 	case UpdateFocus:
 		if msg.Name == "responsebody" {
 			m.State = Focus
@@ -49,8 +52,11 @@ func (m ResponseBody) Update(msg tea.Msg) (ResponseBody, tea.Cmd) {
 
 	}
 
-	m.Viewport, cmd = m.Viewport.Update(msg)
-	cmds = append(cmds, cmd)
+	if m.State == Focus {
+		m.Viewport, cmd = m.Viewport.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
 	return m, tea.Batch(cmds...)
 }
 

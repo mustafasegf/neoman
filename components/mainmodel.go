@@ -1,6 +1,7 @@
 package components
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -36,7 +37,7 @@ func (m MainModel) InitComponent(size tea.WindowSizeMsg) MainModel {
 	updateSize := UpdateSize{Width: 50, Height: 0}
 
 	m.sidebar = MakeSideBar(size, updateSize)
-	m.urlbar = MakeUrlbar("https://jsonplaceholder.typicode.com/todos/1", "", size, updateSize)
+	m.urlbar = MakeUrlbar("https://randomuser.me/api/", "", size, updateSize)
 	m.textbody = MakeTextBody("", size, updateSize)
 	m.responsebody = MakeResponseBody("", size, updateSize)
 	m.focus = "urlbar"
@@ -105,6 +106,8 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.Viewport.Width = msg.Width
 			m.Viewport.Height = msg.Height
+			cmd = m.UpdateAll(msg)
+			cmds = append(cmds, cmd)
 		}
 	case tea.KeyMsg:
 		s := msg.String()
@@ -123,20 +126,23 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.urlbar.Update(UpdateSize{Width: width})
 			m.textbody.Update(UpdateSize{Width: width})
-		case "up", "down":
-			m.sidebar, cmd = m.sidebar.Update(msg)
-			cmds = append(cmds, cmd)
 		case "tab":
 			m, cmd = m.HandleFocus()
+			cmds = append(cmds, cmd)
+		default:
+			cmd = m.UpdateAll(msg)
 			cmds = append(cmds, cmd)
 		}
 
 	case HttpRequestCmd:
 		m.HttpRequest()
+
+	default:
+		cmd = m.UpdateAll(msg)
+		cmds = append(cmds, cmd)
+
 	}
 
-	cmd = m.UpdateAll(msg)
-	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
 }
 
@@ -150,7 +156,14 @@ func (m *MainModel) HttpRequest() {
 	if err != nil {
 		log.Println("http req", err)
 	}
-	m.responsebody.Viewport.SetContent(string(body))
+	var resMap map[string]interface{}
+	json.Unmarshal(body, &resMap)
+
+	resByte, err := json.MarshalIndent(resMap, "", "  ")
+	if err != nil {
+		log.Println("http req", err)
+	}
+	m.responsebody.Viewport.SetContent(string(resByte))
 }
 
 func (m MainModel) View() string {

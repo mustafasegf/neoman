@@ -43,13 +43,16 @@ func (m Urlbar) Update(msg tea.Msg) (Urlbar, tea.Cmd) {
 	case UpdateSize:
 		m.Style = m.Style.Width(m.Style.GetWidth() + msg.Width)
 
+	case tea.WindowSizeMsg:
+		m.Style = m.Style.Width(m.Style.GetWidth())
+	// case tea.WindowSizeMsg:
+	// 	m.Style = m.Style.Width(m.Style.GetWidth() + msg.Width).Height(msg.Height)
+
 	case UpdateFocus:
 		if msg.Name == "urlbar" {
 			m.State = Focus
 			m.Url.Focus()
-			// cmds = append(cmds, cmd)
 			m.Style = m.Style.BorderForeground(lipgloss.Color("201"))
-			// cmds = append(cmds, textinput.Blink)
 		} else {
 			m.State = Blur
 			m.Url.Blur()

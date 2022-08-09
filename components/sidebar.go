@@ -217,8 +217,8 @@ func MakeSideBar(size tea.WindowSizeMsg, updateSize UpdateSize) SideBar {
 
 	tail.Prev.Add(head, f1).
 		Add(head, NewItems("item 6", Req)).
-		Add(head, NewItems("item 6", Req)).
-		Add(head, NewItems("item 7", Req))
+		Add(head, NewItems("item 7", Req)).
+		Add(head, NewItems("item 8", Req))
 
 	head.Next.Selected = true
 
@@ -244,6 +244,10 @@ func (m SideBar) Update(msg tea.Msg) (SideBar, tea.Cmd) {
 	switch msg := msg.(type) {
 	case UpdateSize:
 		m.Style = m.Style.Width(m.Style.GetWidth() - msg.Width)
+
+	case tea.WindowSizeMsg:
+		m.Style = m.Style.Width(m.Style.GetWidth()).Height(msg.Height)
+
 	case UpdateFocus:
 		if msg.Name == "sidebar" {
 			m.State = Focus

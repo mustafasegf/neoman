@@ -41,6 +41,9 @@ func (m TextBody) Update(msg tea.Msg) (TextBody, tea.Cmd) {
 	case UpdateSize:
 		m.Style = m.Style.Width(m.Style.GetWidth() + msg.Width)
 
+	case tea.WindowSizeMsg:
+		m.Style = m.Style.Width(m.Style.GetWidth())
+
 	case UpdateFocus:
 		if msg.Name == "textbody" {
 			m.State = Focus
