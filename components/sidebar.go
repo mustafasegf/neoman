@@ -246,7 +246,7 @@ func (m SideBar) Update(msg tea.Msg) (SideBar, tea.Cmd) {
 		m.Style = m.Style.Width(m.Style.GetWidth() - msg.Width)
 
 	case tea.WindowSizeMsg:
-		m.Style = m.Style.Width(m.Style.GetWidth()).Height(msg.Height)
+		m.Style = m.Style.Width(m.Style.GetWidth()).Height(msg.Height - 2)
 
 	case UpdateFocus:
 		if msg.Name == "sidebar" {

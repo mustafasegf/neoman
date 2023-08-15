@@ -17,9 +17,10 @@ type ResponseBody struct {
 func MakeResponseBody(body string, size tea.WindowSizeMsg, updateSize UpdateSize) ResponseBody {
 	m := ResponseBody{
 		State:    Blur,
-		Style:    lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(size.Width - updateSize.Width - 2).Height(size.Height - 8),
+		Style:    lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Width(size.Width - updateSize.Width - 2),
 		Viewport: viewport.New(size.Width-updateSize.Width-2, size.Height-8),
 	}
+	m.Viewport.SetContent(" ")
 
 	return m
 }
@@ -39,7 +40,8 @@ func (m ResponseBody) Update(msg tea.Msg) (ResponseBody, tea.Cmd) {
 		m.Style = m.Style.Width(m.Style.GetWidth() + msg.Width)
 
 	case tea.WindowSizeMsg:
-		m.Style = m.Style.Width(m.Style.GetWidth()).Height(msg.Height - 8)
+		// m.Style = m.Style.Width(m.Style.GetWidth()).Height(msg.Height - 8)
+		m.Viewport.Height = msg.Height - 8
 
 	case UpdateFocus:
 		if msg.Name == "responsebody" {

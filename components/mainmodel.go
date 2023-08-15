@@ -34,7 +34,7 @@ func InitialModel() MainModel {
 }
 
 func (m MainModel) InitComponent(size tea.WindowSizeMsg) MainModel {
-	updateSize := UpdateSize{Width: 50, Height: 0}
+	updateSize := UpdateSize{Width: 25, Height: 0}
 
 	m.sidebar = MakeSideBar(size, updateSize)
 	m.urlbar = MakeUrlbar("https://randomuser.me/api/", "", size, updateSize)
@@ -150,11 +150,13 @@ func (m *MainModel) HttpRequest() {
 	res, err := http.Get(m.urlbar.Url.Value())
 	if err != nil {
 		log.Println("http req", err)
+		m.responsebody.Viewport.SetContent(string(err.Error()))
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		log.Println("http req", err)
+		m.responsebody.Viewport.SetContent(string(err.Error()))
 	}
 	var resMap map[string]interface{}
 	json.Unmarshal(body, &resMap)
@@ -163,6 +165,7 @@ func (m *MainModel) HttpRequest() {
 	if err != nil {
 		log.Println("http req", err)
 	}
+
 	m.responsebody.Viewport.SetContent(string(resByte))
 }
 
