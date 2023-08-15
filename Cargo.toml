@@ -1,0 +1,11 @@
+[package]
+name = "neoman"
+version = "0.1.0"
+authors = ["Mustafa Zaki Assagaf <mustafa.segf@gmail.com>"]
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+crossterm = "0.26.1"
+ratatui = { version = "0.22.0", features = ["all-widgets"] }
+tui = { package = "ratatui", version = "0.21.0" }
