@@ -88,14 +88,33 @@ impl Item {
         format!("{}{}\n{}", indent, item_str, child_str)
     }
 
-  pub fn to_span(&self) -> Span {
-    let item = self.borrow();
-    match item.selected {
-      false => Span::raw(item.to_string()),
-      true => Span::styled(item.to_string(), *SELECTED_STYLE)
+    pub fn to_line(&self) -> Line {
+        self.to_line_with_depth(0)
     }
-  }
 
+    pub fn to_line_with_depth(&self, depth: usize) -> Line {
+        let item = self.borrow();
+        let indent = "  ".repeat(depth);
+
+        let item_str = format!("{}{}", indent, item.name);
+        match item.selected {
+            false => Line::from(item_str),
+            true => Line::styled(item_str, *SELECTED_STYLE),
+        }
+    }
+
+    pub fn to_text(&self, depth: usize) -> Text {
+        // let item = self.borrow();
+
+        // Text::from(self.borrow()
+        //     .children
+        //     .as_ref()
+        //     .map(|children| children.iter().map(|item| item.clone().to_line_with_depth(depth)))
+        //     .map(|iter| iter.collect::<Vec<_>>())
+        //     .unwrap_or_default())
+
+          Text::from(self.to_line())
+    }
 }
 
 impl std::fmt::Display for Item {
@@ -151,5 +170,13 @@ impl ItemVec {
 
     pub fn print_item(&self, depth: usize) -> String {
         self.iter().map(|item| item.print_item(depth)).collect()
+    }
+
+    pub fn to_text(&self, depth: usize) -> Text {
+        Text::from(
+            self.iter()
+                .map(|item| item.to_line_with_depth(depth))
+                .collect::<Vec<_>>(),
+        )
     }
 }
