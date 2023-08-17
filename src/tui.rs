@@ -5,8 +5,8 @@ use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::terminal::{self, EnterAlternateScreen, LeaveAlternateScreen};
 use std::io;
 use std::panic;
-use tui::backend::Backend;
-use tui::Terminal;
+use ratatui::backend::Backend;
+use ratatui::Terminal;
 
 /// Representation of a terminal user interface.
 ///

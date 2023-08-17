@@ -3,8 +3,8 @@ use neoman::event::{Event, EventHandler};
 use neoman::handler::handle_key_events;
 use neoman::tui::Tui;
 use std::io;
-use tui::backend::CrosstermBackend;
-use tui::Terminal;
+use ratatui::backend::CrosstermBackend;
+use ratatui::Terminal;
 
 fn main() -> AppResult<()> {
     // Create an application.

@@ -58,6 +58,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "cursorvec"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4cc6b63f3bf7883076f49a6a175255ceaa12305af4cb49d698a3a745e811c3f"
+
+[[package]]
 name = "deranged"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -111,6 +117,7 @@ name = "neoman"
 version = "0.1.0"
 dependencies = [
  "crossterm",
+ "cursorvec",
  "ratatui 0.21.0",
  "ratatui 0.22.0",
 ]
