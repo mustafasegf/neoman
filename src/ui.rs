@@ -39,7 +39,8 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
 }
 
 pub fn sidebar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
-    let paragraph = Paragraph::new(app.sidebar.items.print_item(0)).block(
+  let text = Text::from(app.sidebar.list.iter().map(|item| Line::from(item.to_span()) ).collect::<Vec<_>>());
+    let paragraph = Paragraph::new(text).block(
         Block::default()
             .title("Sidebar")
             .borders(Borders::ALL)

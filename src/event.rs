@@ -47,8 +47,13 @@ impl EventHandler {
                         match event::read().expect("unable to read event") {
                             CrosstermEvent::Key(e) => sender.send(Event::Key(e)),
                             CrosstermEvent::Mouse(e) => sender.send(Event::Mouse(e)),
+
                             CrosstermEvent::Resize(w, h) => sender.send(Event::Resize(w, h)),
-                            _ => unimplemented!(),
+                            // TODO: Unimplemented
+                            e => {
+                              tracing::debug!("event not implemented: {:#?}", e);
+                              Ok(())
+                          },
                         }
                         .expect("failed to send terminal event")
                     }

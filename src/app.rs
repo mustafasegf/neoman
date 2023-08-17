@@ -42,13 +42,19 @@ impl Default for App {
             ]),
             Item::new("Item 2"),
         ]));
+
+        let mut list = items.preorder_iter();
+        list.set_rotatable(true);
+        list.get_current().value().unwrap().borrow_mut().selected = true;
+        items.get_current().value().unwrap().borrow_mut().selected = true;
+
         Self {
             running: true,
             counter: 0,
             sidebar: SideBar {
                 size: 25,
                 selected: 0,
-                list: items.preorder_iter(),
+                list,
                 items,
             },
             settings: Settings {

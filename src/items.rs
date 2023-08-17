@@ -1,10 +1,17 @@
+// use crossterm::style::Stylize;
 use cursorvec::CursorVec;
+use ratatui::{prelude::*, style::Stylize};
 use std::{
     cell::RefCell,
     collections::VecDeque,
     ops::{Deref, DerefMut},
     rc::Rc,
 };
+
+use lazy_static::lazy_static;
+lazy_static! {
+    static ref SELECTED_STYLE: ratatui::style::Style = Style::default().fg(Color::LightBlue);
+}
 
 #[derive(Debug, Default)]
 pub struct ItemInner {
@@ -62,6 +69,7 @@ impl Item {
         self.borrow_mut().children = Some(ItemVec(CursorVec::new().with_container(child_refs)));
         self
     }
+
     pub fn print_item(&self, depth: usize) -> String {
         let item = self.borrow();
         let indent = "  ".repeat(depth);
@@ -72,8 +80,22 @@ impl Item {
             .map(|children| children.print_item(depth + 1))
             .unwrap_or_default();
 
-        format!("{}{}\n{}", indent, item, child_str)
+        let item_str = match item.selected {
+            false => item.to_string(),
+            true => format!("*{}", item.to_string()),
+        };
+
+        format!("{}{}\n{}", indent, item_str, child_str)
     }
+
+  pub fn to_span(&self) -> Span {
+    let item = self.borrow();
+    match item.selected {
+      false => Span::raw(item.to_string()),
+      true => Span::styled(item.to_string(), *SELECTED_STYLE)
+    }
+  }
+
 }
 
 impl std::fmt::Display for Item {
@@ -119,7 +141,7 @@ impl ItemVec {
                 let childs = children.preorder_iter();
                 for child in childs.0.iter().rev() {
                     // push children in reverse so left-most are processed first
-                    stack.push_front(child.clone());
+                    result.push(child.clone());
                 }
             }
         }

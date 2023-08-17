@@ -8,5 +8,8 @@ edition = "2021"
 [dependencies]
 crossterm = "0.26.1"
 cursorvec = "0.2.0"
+lazy_static = "1.4.0"
 ratatui = { version = "0.22.0", features = ["all-widgets"] }
+tracing = "0.1.37"
+tracing-subscriber = "0.3.17"
 tui = { package = "ratatui", version = "0.21.0" }
