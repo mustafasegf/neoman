@@ -2,6 +2,7 @@ use ratatui::{
     prelude::*,
     widgets::{Block, BorderType, Borders, Paragraph},
 };
+use tui_tree_widget::Tree;
 
 use crate::app::App;
 
@@ -39,14 +40,36 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
 }
 
 pub fn sidebar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
-    let paragraph = Paragraph::new(app.sidebar.items.print_item(0)).block(
-        Block::default()
-            .title("Sidebar")
-            .borders(Borders::ALL)
-            .border_type(BorderType::Rounded),
-    );
+    // let paragraph = Paragraph::new(app.sidebar.items.print_item(0)).block(
+    //     Block::default()
+    //         .title("Sidebar")
+    //         .borders(Borders::ALL)
+    //         .border_type(BorderType::Rounded),
+    // );
 
-    frame.render_widget(paragraph, area);
+    // frame.render_widget(paragraph, area);
+
+    let indicies = app.sidebar.tree.state.selected();
+    let item = app.sidebar.tree.items.get(indicies[0]);
+
+    let selected = indicies.iter().skip(1).fold(item, |item, &i| {
+        item.and_then(|item| item.children().get(i))
+    });
+
+    let items = Tree::new(app.sidebar.tree.items.clone())
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(format!("{:?}", selected.map(|item| item.inner().to_string()))),
+        )
+        .highlight_style(
+            Style::default()
+                .fg(Color::LightBlue)
+                // .bg(Color::LightGreen)
+                .add_modifier(Modifier::BOLD)
+                .add_modifier(Modifier::UNDERLINED),
+        );
+    frame.render_stateful_widget(items, area, &mut app.sidebar.tree.state);
 }
 
 pub fn mainbar<B: Backend>(_app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {

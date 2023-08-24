@@ -14,14 +14,15 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                 app.quit();
             }
         }
-        // Counter handlers
-        KeyCode::Right => {
-            app.increment_counter();
-        }
-        KeyCode::Left => {
-            app.decrement_counter();
-        }
-        // Exit application on `Ctrl-C`
+        KeyCode::Char(' ') | KeyCode::Char('o') | KeyCode::Enter => app.sidebar.tree.toggle(),
+
+        KeyCode::Left => app.sidebar.tree.left(),
+        KeyCode::Right => app.sidebar.tree.right(),
+        KeyCode::Down => app.sidebar.tree.down(),
+        KeyCode::Up => app.sidebar.tree.up(),
+        KeyCode::Home => app.sidebar.tree.first(),
+        KeyCode::End => app.sidebar.tree.last(),
+
         KeyCode::Char('b') | KeyCode::Char('B') => {
             if key_event.modifiers == KeyModifiers::CONTROL {
                 app.toggle_sidebar();

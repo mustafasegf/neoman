@@ -10,3 +10,4 @@ crossterm = "0.26.1"
 cursorvec = "0.2.0"
 ratatui = { version = "0.22.0", features = ["all-widgets"] }
 tui = { package = "ratatui", version = "0.21.0" }
+tui-tree-widget = { git = "https://github.com/mustafasegf/tui-rs-tree-widget", branch = "feature-ratatui", features = ["ratatui"] }
