@@ -7,6 +7,9 @@ use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
 
 fn main() -> AppResult<()> {
+    let out = std::fs::File::create("output.log")?;
+    tracing_subscriber::fmt().with_writer(out).init();
+
     // Create an application.
     let mut app = App::new();
 

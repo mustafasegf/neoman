@@ -35,3 +35,4 @@ _current_session
 # Added by cargo
 
 /target
+output.log
