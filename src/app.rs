@@ -1,6 +1,5 @@
 use std::error;
 
-use cursorvec::CursorVec;
 use tui_tree_widget::TreeItem;
 
 use crate::items::{Item, StatefulTree};
@@ -12,9 +11,21 @@ pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
 #[derive(Debug)]
 pub struct App {
     pub running: bool,
-    pub counter: u8,
     pub sidebar: SideBar,
     pub settings: Settings,
+    pub tabs: TabBar,
+    pub urlbar: UrlBar,
+    pub requestbar: RequestBar,
+}
+
+#[derive(Debug, Default)]
+pub enum Selected {
+    #[default]
+    Sidebar,
+    Tabs,
+    MethodBar,
+    Urlbar,
+    Requestbar,
 }
 
 #[derive(Debug)]
@@ -24,10 +35,73 @@ pub struct SideBar {
     pub tree: StatefulTree<'static>,
 }
 
+#[derive(Debug, Default)]
+pub struct TabBar {
+    pub selected: usize,
+    pub tabs: Vec<Item>,
+}
+
+
+#[derive(Debug, Default)]
+pub enum InputMode {
+    #[default]
+    Normal,
+    Insert,
+}
+
+#[derive(Debug, Default, strum::Display)]
+pub enum Method {
+    #[default]
+    Get,
+    Post,
+    Put,
+    Patch,
+    Delete,
+    Head,
+    Options,
+    Other(String),
+}
+
+
+
+#[derive(Debug, Default)]
+pub struct UrlBar {
+    pub title: String,
+    pub text: String,
+    pub cursor_position: usize,
+    pub input_mode: InputMode,
+    pub method: Method,
+}
+
+#[derive(Debug, Default, strum::Display, strum::EnumIter)]
+pub enum RequestMenu {
+    #[default]
+    Params,
+    Authentication,
+    Headers,
+    Body,
+}
+
+
+#[derive(Debug, Default)]
+pub struct RequestBar {
+    pub body: String,
+    pub request_menu: RequestMenu,
+}
+
 #[derive(Debug)]
 pub struct Settings {
     pub show_sidebar: bool,
     pub show_help: bool,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            show_sidebar: true,
+            show_help: false,
+        }
+    }
 }
 
 impl Default for App {
@@ -51,17 +125,31 @@ impl Default for App {
             TreeItem::new_leaf(Item::new("d")),
         ]);
         tree.first();
+
+        let tabs = tree.items.iter().map(|i| i.inner().clone()).collect();
+
         Self {
             running: true,
-            counter: 0,
             sidebar: SideBar {
-                size: 45,
+                size: 25,
                 selected: 0,
                 tree,
             },
             settings: Settings {
                 show_sidebar: true,
                 show_help: false,
+            },
+            tabs: TabBar { selected: 0, tabs },
+            urlbar: UrlBar {
+                title: String::from("localhost:8080"),
+                text: String::from("localhost:8080"),
+                cursor_position: 0,
+                input_mode: InputMode::Normal,
+                method: Method::Get,
+            },
+            requestbar: RequestBar {
+                body: String::new(),
+                request_menu: RequestMenu::Params,
             },
         }
     }
