@@ -5,7 +5,16 @@ use ratatui::{
 use strum::IntoEnumIterator;
 use tui_tree_widget::Tree;
 
-use crate::app::{App, RequestMenu};
+use crate::app::{App, RequestMenu, Selected};
+
+const HIGHLIGHT_STYLE: Style = Style::new()
+    .fg(Color::LightBlue)
+    .add_modifier(Modifier::BOLD)
+    .bg(Color::DarkGray);
+
+const SELECTED_STYLE: Style = Style::new().fg(Color::LightGreen);
+
+const DEFAULT_STYLE: Style = Style::new().fg(Color::White);
 
 /// Renders the user interface widgets.
 pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
@@ -14,56 +23,33 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
         .constraints([Constraint::Length(app.sidebar_size()), Constraint::Min(0)].as_ref())
         .split(frame.size());
 
-    // render side bar
     sidebar(app, frame, chunks[0]);
-    // render main bar
     mainbar(app, frame, chunks[1]);
-
-    // frame.render_widget(
-    //     Paragraph::new(format!(
-    //         "This is a tui template.\n\
-    //             Press `Esc`, `Ctrl-C` or `q` to stop running.\n\
-    //             Press left and right to increment and decrement the counter respectively.\n\
-    //             Counter: {}",
-    //         app.counter
-    //     ))
-    //     .block(
-    //         Block::default()
-    //             .title("Template")
-    //             .title_alignment(Alignment::Center)
-    //             .borders(Borders::ALL)
-    //             .border_type(BorderType::Rounded),
-    //     )
-    //     .style(Style::default().fg(Color::Cyan).bg(Color::Black))
-    //     .alignment(Alignment::Center),
-    //     frame.size(),
-    // )
 }
 
 pub fn sidebar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
+    let (style, highlight_style) = match app.selected == Selected::Sidebar {
+        true => (SELECTED_STYLE, HIGHLIGHT_STYLE),
+        false => (DEFAULT_STYLE, DEFAULT_STYLE),
+    };
+
     let indicies = app.sidebar.tree.state.selected();
     let item = app.sidebar.tree.items.get(indicies[0]);
 
-    let selected = indicies.iter().skip(1).fold(item, |item, &i| {
+    let _selected = indicies.iter().skip(1).fold(item, |item, &i| {
         item.and_then(|item| item.children().get(i))
     });
 
     let block = Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
-        .title(format!(
-            "{:?}",
-            selected.map(|item| item.inner().to_string())
-        ));
+        .style(style);
 
     let items = Tree::new(app.sidebar.tree.items.clone())
         .block(block)
-        .highlight_style(
-            Style::default()
-                .fg(Color::LightBlue)
-                .add_modifier(Modifier::BOLD)
-                .add_modifier(Modifier::UNDERLINED),
-        );
+        .highlight_style(highlight_style)
+        .style(DEFAULT_STYLE);
+
     frame.render_stateful_widget(items, area, &mut app.sidebar.tree.state);
 }
 
@@ -93,6 +79,11 @@ pub fn mainbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) 
 }
 
 pub fn tabs<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
+    let (style, highlight_style) = match app.selected == Selected::Tabs {
+        true => (SELECTED_STYLE, HIGHLIGHT_STYLE),
+        false => (DEFAULT_STYLE, DEFAULT_STYLE),
+    };
+
     let titles = app
         .tabs
         .tabs
@@ -103,17 +94,23 @@ pub fn tabs<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
     let tabs = Tabs::new(titles)
         .block(Block::default().borders(Borders::ALL).title("Tabs"))
         .select(app.tabs.selected)
-        .style(Style::default().fg(Color::Cyan))
-        .highlight_style(
-            Style::default()
-                .add_modifier(Modifier::BOLD)
-                .bg(Color::Black),
-        );
+        .style(style)
+        .highlight_style(highlight_style);
 
     frame.render_widget(tabs, area);
 }
 
 pub fn urlbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
+    let (method_style, _method_highlight_style) = match app.selected == Selected::MethodBar {
+        true => (SELECTED_STYLE, HIGHLIGHT_STYLE),
+        false => (DEFAULT_STYLE, DEFAULT_STYLE),
+    };
+
+    let (url_style, _url_highlight_style) = match app.selected == Selected::Urlbar {
+        true => (SELECTED_STYLE, HIGHLIGHT_STYLE),
+        false => (DEFAULT_STYLE, DEFAULT_STYLE),
+    };
+
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Min(10), Constraint::Min(0)].as_ref())
@@ -122,7 +119,8 @@ pub fn urlbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
     let block = Block::default()
         .title(format!("URL: {}", app.urlbar.title))
         .borders(Borders::ALL)
-        .border_type(BorderType::Rounded);
+        .border_type(BorderType::Rounded)
+        .style(url_style);
 
     let text = Paragraph::new(app.urlbar.text.clone())
         .block(block)
@@ -131,7 +129,8 @@ pub fn urlbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
 
     let method_block = Block::default()
         .borders(Borders::ALL)
-        .border_type(BorderType::Rounded);
+        .border_type(BorderType::Rounded)
+        .style(method_style);
 
     let method = Paragraph::new(app.urlbar.method.to_string())
         .block(method_block)
@@ -143,6 +142,11 @@ pub fn urlbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
 }
 
 pub fn requestbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
+    let (style, highlight_style) = match app.selected == Selected::Requestbar {
+        true => (SELECTED_STYLE, HIGHLIGHT_STYLE),
+        false => (DEFAULT_STYLE, DEFAULT_STYLE),
+    };
+
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Min(1), Constraint::Min(0)].as_ref())
@@ -155,12 +159,8 @@ pub fn requestbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rec
     let tabs = Tabs::new(titles)
         // .block(Block::default())
         .select(0)
-        .style(Style::default().fg(Color::Cyan))
-        .highlight_style(
-            Style::default()
-                .add_modifier(Modifier::BOLD)
-                .bg(Color::Black),
-        );
+        .style(style)
+        .highlight_style(highlight_style);
 
     frame.render_widget(tabs, chunks[0]);
 

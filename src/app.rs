@@ -11,6 +11,7 @@ pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
 #[derive(Debug)]
 pub struct App {
     pub running: bool,
+    pub selected: Selected,
     pub sidebar: SideBar,
     pub settings: Settings,
     pub tabs: TabBar,
@@ -18,7 +19,7 @@ pub struct App {
     pub requestbar: RequestBar,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, strum::Display, strum::EnumIter, PartialEq)]
 pub enum Selected {
     #[default]
     Sidebar,
@@ -41,7 +42,6 @@ pub struct TabBar {
     pub tabs: Vec<Item>,
 }
 
-
 #[derive(Debug, Default)]
 pub enum InputMode {
     #[default]
@@ -62,8 +62,6 @@ pub enum Method {
     Other(String),
 }
 
-
-
 #[derive(Debug, Default)]
 pub struct UrlBar {
     pub title: String,
@@ -81,7 +79,6 @@ pub enum RequestMenu {
     Headers,
     Body,
 }
-
 
 #[derive(Debug, Default)]
 pub struct RequestBar {
@@ -130,6 +127,7 @@ impl Default for App {
 
         Self {
             running: true,
+            selected: Selected::Sidebar,
             sidebar: SideBar {
                 size: 25,
                 selected: 0,

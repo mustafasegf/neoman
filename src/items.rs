@@ -107,4 +107,13 @@ impl<'a> StatefulTree<'a> {
     pub fn toggle(&mut self) {
         self.state.toggle_selected();
     }
+
+    pub fn selected(&self) -> Option<&TreeItem<'a, Item>> {
+        let indicies = self.state.selected();
+        let item = self.items.get(indicies[0]);
+
+        indicies.iter().skip(1).fold(item, |item, &i| {
+            item.and_then(|item| item.children().get(i))
+        })
+    }
 }

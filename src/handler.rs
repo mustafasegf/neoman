@@ -1,19 +1,18 @@
-use crate::app::{App, AppResult};
+use crate::app::{App, AppResult, Selected};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 /// Handles the key events and updates the state of [`App`].
 pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
     match key_event.code {
-        // Exit application on `ESC` or `q`
         KeyCode::Esc | KeyCode::Char('q') => {
             app.quit();
         }
-        // Exit application on `Ctrl-C`
         KeyCode::Char('c') | KeyCode::Char('C') => {
             if key_event.modifiers == KeyModifiers::CONTROL {
                 app.quit();
             }
         }
+
         KeyCode::Char(' ') | KeyCode::Char('o') | KeyCode::Enter => app.sidebar.tree.toggle(),
 
         KeyCode::Left => app.sidebar.tree.left(),
@@ -27,6 +26,16 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
             if key_event.modifiers == KeyModifiers::CONTROL {
                 app.toggle_sidebar();
             }
+        }
+
+        KeyCode::Tab => {
+            app.selected = match app.selected {
+                Selected::Sidebar => Selected::Tabs,
+                Selected::Tabs => Selected::MethodBar,
+                Selected::MethodBar => Selected::Urlbar,
+                Selected::Urlbar => Selected::Requestbar,
+                Selected::Requestbar => Selected::Sidebar,
+            };
         }
 
         // Other handlers you could add here.
