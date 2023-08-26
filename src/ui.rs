@@ -67,15 +67,10 @@ pub fn mainbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) 
         )
         .split(area);
 
-    let block = Block::default()
-        .title("Reponse")
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded);
-
     tabs(app, frame, chunks[0]);
     urlbar(app, frame, chunks[1]);
     requestbar(app, frame, chunks[2]);
-    frame.render_widget(block, chunks[3]);
+    responsebar(app, frame, chunks[3]);
 }
 
 pub fn tabs<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
@@ -165,7 +160,7 @@ pub fn requestbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rec
     frame.render_widget(tabs, chunks[0]);
 
     let block = Block::default()
-        .title("request")
+        .title("Request")
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded);
 
@@ -175,4 +170,24 @@ pub fn requestbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rec
         .alignment(Alignment::Left);
 
     frame.render_widget(text, chunks[1]);
+}
+
+pub fn responsebar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
+    let (style, _highlight_style) = match app.selected == Selected::Responsebar {
+        true => (SELECTED_STYLE, HIGHLIGHT_STYLE),
+        false => (DEFAULT_STYLE, DEFAULT_STYLE),
+    };
+
+    let block = Block::default()
+        .title("Response")
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .style(style);
+
+    let text = Paragraph::new(app.responsebar.body.clone())
+        .block(block)
+        .wrap(Wrap { trim: true })
+        .alignment(Alignment::Left);
+
+    frame.render_widget(text, area);
 }

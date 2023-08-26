@@ -29,13 +29,25 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
         }
 
         KeyCode::Tab => {
-            app.selected = match app.selected {
-                Selected::Sidebar => Selected::Tabs,
-                Selected::Tabs => Selected::MethodBar,
-                Selected::MethodBar => Selected::Urlbar,
-                Selected::Urlbar => Selected::Requestbar,
-                Selected::Requestbar => Selected::Sidebar,
-            };
+            if key_event.modifiers == KeyModifiers::CONTROL {
+                app.selected = match app.selected {
+                    Selected::Sidebar => Selected::Responsebar,
+                    Selected::Tabs => Selected::Sidebar,
+                    Selected::MethodBar => Selected::Tabs,
+                    Selected::Urlbar => Selected::MethodBar,
+                    Selected::Requestbar => Selected::Urlbar,
+                    Selected::Responsebar => Selected::Requestbar,
+                };
+            } else {
+                app.selected = match app.selected {
+                    Selected::Sidebar => Selected::Tabs,
+                    Selected::Tabs => Selected::MethodBar,
+                    Selected::MethodBar => Selected::Urlbar,
+                    Selected::Urlbar => Selected::Requestbar,
+                    Selected::Requestbar => Selected::Responsebar,
+                    Selected::Responsebar => Selected::Sidebar,
+                };
+            }
         }
 
         // Other handlers you could add here.

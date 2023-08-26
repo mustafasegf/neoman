@@ -17,6 +17,7 @@ pub struct App {
     pub tabs: TabBar,
     pub urlbar: UrlBar,
     pub requestbar: RequestBar,
+    pub responsebar: ResponseBar,
 }
 
 #[derive(Debug, Default, strum::Display, strum::EnumIter, PartialEq)]
@@ -27,6 +28,7 @@ pub enum Selected {
     MethodBar,
     Urlbar,
     Requestbar,
+    Responsebar,
 }
 
 #[derive(Debug)]
@@ -84,6 +86,11 @@ pub enum RequestMenu {
 pub struct RequestBar {
     pub body: String,
     pub request_menu: RequestMenu,
+}
+
+#[derive(Debug, Default)]
+pub struct ResponseBar {
+    pub body: String,
 }
 
 #[derive(Debug)]
@@ -148,6 +155,9 @@ impl Default for App {
             requestbar: RequestBar {
                 body: String::new(),
                 request_menu: RequestMenu::Params,
+            },
+            responsebar: ResponseBar {
+                body: String::new(),
             },
         }
     }

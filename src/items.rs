@@ -58,7 +58,7 @@ impl Item {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct StatefulTree<'a> {
     pub state: TreeState,
     pub items: Vec<TreeItem<'a, Item>>,
