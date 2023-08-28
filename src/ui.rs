@@ -7,14 +7,14 @@ use tui_tree_widget::Tree;
 
 use crate::{app::{App, Selected}, component::requestbar::RequestMenu};
 
-const HIGHLIGHT_STYLE: Style = Style::new()
+pub const HIGHLIGHT_STYLE: Style = Style::new()
     .fg(Color::LightBlue)
     .add_modifier(Modifier::BOLD)
     .bg(Color::DarkGray);
 
-const SELECTED_STYLE: Style = Style::new().fg(Color::LightGreen);
+pub const SELECTED_STYLE: Style = Style::new().fg(Color::LightGreen);
 
-const DEFAULT_STYLE: Style = Style::new().fg(Color::White);
+pub const DEFAULT_STYLE: Style = Style::new().fg(Color::White);
 
 /// Renders the user interface widgets.
 pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
@@ -32,13 +32,6 @@ pub fn sidebar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) 
         true => (SELECTED_STYLE, HIGHLIGHT_STYLE),
         false => (DEFAULT_STYLE, DEFAULT_STYLE),
     };
-
-    let indicies = app.sidebar.tree.state.selected();
-    let item = app.sidebar.tree.items.get(indicies[0]);
-
-    let _selected = indicies.iter().skip(1).fold(item, |item, &i| {
-        item.and_then(|item| item.children().get(i))
-    });
 
     let block = Block::default()
         .borders(Borders::ALL)

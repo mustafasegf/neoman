@@ -125,6 +125,10 @@ impl App {
     }
 
     pub fn toggle_sidebar(&mut self) {
+        if self.selected == Selected::Sidebar {
+            self.selected = Selected::Tabs;
+        }
+
         self.settings.show_sidebar = !self.settings.show_sidebar;
     }
 
