@@ -14,3 +14,5 @@ pub mod tui;
 pub mod handler;
 
 pub mod items;
+
+pub mod component;

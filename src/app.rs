@@ -2,7 +2,16 @@ use std::error;
 
 use tui_tree_widget::TreeItem;
 
-use crate::items::{Item, StatefulTree};
+use crate::{
+    component::{
+        requestbar::{RequestBar, RequestMenu},
+        responsebar::ResponseBar,
+        sidebar::SideBar,
+        tabbar::TabBar,
+        urlbar::{InputMode, Method, UrlBar},
+    },
+    items::{Item, StatefulTree},
+};
 
 /// Application result type.
 pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
@@ -29,68 +38,6 @@ pub enum Selected {
     Urlbar,
     Requestbar,
     Responsebar,
-}
-
-#[derive(Debug)]
-pub struct SideBar {
-    pub size: u16,
-    pub selected: usize,
-    pub tree: StatefulTree<'static>,
-}
-
-#[derive(Debug, Default)]
-pub struct TabBar {
-    pub selected: usize,
-    pub tabs: Vec<Item>,
-}
-
-#[derive(Debug, Default)]
-pub enum InputMode {
-    #[default]
-    Normal,
-    Insert,
-}
-
-#[derive(Debug, Default, strum::Display)]
-pub enum Method {
-    #[default]
-    Get,
-    Post,
-    Put,
-    Patch,
-    Delete,
-    Head,
-    Options,
-    Other(String),
-}
-
-#[derive(Debug, Default)]
-pub struct UrlBar {
-    pub title: String,
-    pub text: String,
-    pub cursor_position: usize,
-    pub input_mode: InputMode,
-    pub method: Method,
-}
-
-#[derive(Debug, Default, strum::Display, strum::EnumIter)]
-pub enum RequestMenu {
-    #[default]
-    Params,
-    Authentication,
-    Headers,
-    Body,
-}
-
-#[derive(Debug, Default)]
-pub struct RequestBar {
-    pub body: String,
-    pub request_menu: RequestMenu,
-}
-
-#[derive(Debug, Default)]
-pub struct ResponseBar {
-    pub body: String,
 }
 
 #[derive(Debug)]

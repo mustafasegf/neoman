@@ -5,7 +5,7 @@ use ratatui::{
 use strum::IntoEnumIterator;
 use tui_tree_widget::Tree;
 
-use crate::app::{App, RequestMenu, Selected};
+use crate::{app::{App, Selected}, component::requestbar::RequestMenu};
 
 const HIGHLIGHT_STYLE: Style = Style::new()
     .fg(Color::LightBlue)
