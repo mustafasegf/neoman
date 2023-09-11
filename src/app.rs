@@ -1,7 +1,6 @@
+use reqwest::Url;
 use std::error;
-use reqwest::{RequestBuilder, Request, IntoUrl, Url};
 use strum::IntoEnumIterator;
-
 
 use tui_menu::{MenuItem, MenuState};
 use tui_tree_widget::TreeItem;
@@ -40,6 +39,7 @@ pub enum Selected {
     Tabs,
     MethodBar,
     Urlbar,
+    RequestTab,
     Requestbar,
     Responsebar,
 }
@@ -97,8 +97,8 @@ impl Default for App {
             },
             tabs: TabBar { selected: 0, tabs },
             urlbar: UrlBar {
-                title: String::from("https://api.kanye.rest/"),
-                text: String::from("https://api.kanye.rest/"),
+                title: String::from("https://api.kanye.rest/?q=a"),
+                text: String::from("https://api.kanye.rest/?q=a"),
                 cursor_position: 0,
                 input_mode: InputMode::Normal,
                 method: Method::Get,
@@ -167,11 +167,9 @@ impl App {
             Err(_) => Url::parse(&format!("https://{}", &self.urlbar.text)).unwrap(),
         };
 
-        // let url = Url::parse(&self.urlbar.text).unwrap();
-
         let mut req = reqwest::Request::new(method, url);
         req.body_mut().replace(self.requestbar.body.clone().into());
-        
+
         let res = client.execute(req).await.unwrap();
         let body = res.text().await.unwrap_or_default();
 

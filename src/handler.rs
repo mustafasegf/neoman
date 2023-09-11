@@ -21,28 +21,32 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
         }
 
         KeyCode::Esc | KeyCode::Char('q') => {
-            app.quit();
+            if !app.urlbar.method_menu.is_open() {
+                app.quit();
+            }
         }
 
-        KeyCode::Tab => {
-            if key_event.modifiers == KeyModifiers::CONTROL {
-                app.selected = match app.selected {
-                    Selected::Sidebar => Selected::Responsebar,
-                    Selected::Tabs => Selected::Sidebar,
-                    Selected::MethodBar => Selected::Tabs,
-                    Selected::Urlbar => Selected::MethodBar,
-                    Selected::Requestbar => Selected::Urlbar,
-                    Selected::Responsebar => Selected::Requestbar,
-                };
-            } else {
-                app.selected = match app.selected {
-                    Selected::Sidebar => Selected::Tabs,
-                    Selected::Tabs => Selected::MethodBar,
-                    Selected::MethodBar => Selected::Urlbar,
-                    Selected::Urlbar => Selected::Requestbar,
-                    Selected::Requestbar => Selected::Responsebar,
-                    Selected::Responsebar => Selected::Sidebar,
-                };
+        KeyCode::Tab | KeyCode::Char('.') | KeyCode::Char(']') => {
+            app.selected = match app.selected {
+                Selected::Sidebar => Selected::Tabs,
+                Selected::Tabs => Selected::MethodBar,
+                Selected::MethodBar => Selected::Urlbar,
+                Selected::Urlbar => Selected::RequestTab,
+                Selected::RequestTab => Selected::Requestbar,
+                Selected::Requestbar => Selected::Responsebar,
+                Selected::Responsebar => Selected::Sidebar,
+            };
+        }
+
+        KeyCode::Char(',') | KeyCode::Char('[') => {
+            app.selected = match app.selected {
+                Selected::Sidebar => Selected::Responsebar,
+                Selected::Tabs => Selected::Sidebar,
+                Selected::MethodBar => Selected::Tabs,
+                Selected::Urlbar => Selected::MethodBar,
+                Selected::RequestTab => Selected::Urlbar,
+                Selected::Requestbar => Selected::RequestTab,
+                Selected::Responsebar => Selected::Requestbar,
             }
         }
 
@@ -179,15 +183,17 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                 }
             }
         },
-        Selected::Requestbar => {
+        Selected::RequestTab => {
             match key_event.code {
                 KeyCode::Char('h') | KeyCode::Left => app.requestbar.left(),
                 KeyCode::Char('l') | KeyCode::Right => app.requestbar.right(),
                 KeyCode::Char('j') | KeyCode::Down => app.requestbar.left(),
                 KeyCode::Char('k') | KeyCode::Up => app.requestbar.right(),
+
                 _ => {}
             };
         }
+        Selected::Requestbar => {}
         Selected::Responsebar => {}
     }
     Ok(())

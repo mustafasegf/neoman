@@ -150,7 +150,12 @@ pub fn urlbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
 }
 
 pub fn requestbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
-    let (style, highlight_style) = match app.selected == Selected::Requestbar {
+    let (tab_style, tab_highlight_style) = match app.selected == Selected::RequestTab {
+        true => (SELECTED_STYLE, HIGHLIGHT_STYLE),
+        false => (DEFAULT_STYLE, DEFAULT_STYLE),
+    };
+
+    let (bar_style, _bar_highlight_style) = match app.selected == Selected::Requestbar {
         true => (SELECTED_STYLE, HIGHLIGHT_STYLE),
         false => (DEFAULT_STYLE, DEFAULT_STYLE),
     };
@@ -171,15 +176,16 @@ pub fn requestbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rec
     let tabs = Tabs::new(titles)
         // .block(Block::default())
         .select(idx)
-        .style(style)
-        .highlight_style(highlight_style);
+        .style(tab_style)
+        .highlight_style(tab_highlight_style);
 
     frame.render_widget(tabs, chunks[0]);
 
     let block = Block::default()
         .title("Request")
         .borders(Borders::ALL)
-        .border_type(BorderType::Rounded);
+        .border_type(BorderType::Rounded)
+        .style(bar_style);
 
     let text = Paragraph::new(app.requestbar.body.clone())
         .block(block)
