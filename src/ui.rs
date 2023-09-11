@@ -3,9 +3,13 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Paragraph, Tabs, Wrap},
 };
 use strum::IntoEnumIterator;
+use tui_menu::Menu;
 use tui_tree_widget::Tree;
 
-use crate::{app::{App, Selected}, component::requestbar::RequestMenu};
+use crate::{
+    app::{App, Selected},
+    component::requestbar::RequestMenu,
+};
 
 pub const HIGHLIGHT_STYLE: Style = Style::new()
     .fg(Color::LightBlue)
@@ -61,9 +65,9 @@ pub fn mainbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) 
         .split(area);
 
     tabs(app, frame, chunks[0]);
-    urlbar(app, frame, chunks[1]);
     requestbar(app, frame, chunks[2]);
     responsebar(app, frame, chunks[3]);
+    urlbar(app, frame, chunks[1]);
 }
 
 pub fn tabs<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
@@ -120,13 +124,15 @@ pub fn urlbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
         .border_type(BorderType::Rounded)
         .style(method_style);
 
-    let method = Paragraph::new(app.urlbar.method.to_string())
-        .block(method_block)
-        .wrap(Wrap { trim: true })
-        .alignment(Alignment::Left);
-
-    frame.render_widget(method, chunks[0]);
     frame.render_widget(text, chunks[1]);
+    let menu = Menu::new();
+
+    frame.render_widget(method_block, chunks[0]);
+    let mut r = chunks[0];
+    r.x += 1;
+    r.y += 1;
+
+    frame.render_stateful_widget(menu, r, &mut app.urlbar.method_menu);
 }
 
 pub fn requestbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {

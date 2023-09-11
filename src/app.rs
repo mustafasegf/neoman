@@ -1,5 +1,7 @@
 use std::error;
+use strum::IntoEnumIterator;
 
+use tui_menu::{MenuItem, MenuState};
 use tui_tree_widget::TreeItem;
 
 use crate::{
@@ -98,6 +100,12 @@ impl Default for App {
                 cursor_position: 0,
                 input_mode: InputMode::Normal,
                 method: Method::Get,
+                method_menu: MenuState::new(vec![MenuItem::group(
+                    Method::default().to_string(),
+                    Method::iter()
+                        .map(|m| MenuItem::item(m.to_string(), m))
+                        .collect(),
+                )]),
             },
             requestbar: RequestBar {
                 body: String::new(),

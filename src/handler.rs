@@ -52,7 +52,6 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
             KeyCode::Char(' ') | KeyCode::Char('o') | KeyCode::Enter => {
                 if let Some(item) = app.sidebar.selected() {
                     if item.children().is_empty() {
-                        // app.tabs.add(item.inner().clone());
                         let item_name = item.inner().to_string();
                         match app
                             .tabs
@@ -64,6 +63,7 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                         {
                             Some(i) => {
                                 app.tabs.selected = i;
+                                app.selected = Selected::Tabs;
                             }
                             None => {
                                 app.tabs.add(item.inner().clone());
@@ -108,7 +108,30 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
             KeyCode::Enter => {}
             _ => {}
         },
-        Selected::MethodBar => {}
+        Selected::MethodBar => {
+            match key_event.code {
+                KeyCode::Char('h') | KeyCode::Left => app.urlbar.method_menu.left(),
+                KeyCode::Char('l') | KeyCode::Right => app.urlbar.method_menu.right(),
+                KeyCode::Char('j') | KeyCode::Down => app.urlbar.method_menu.down(),
+                KeyCode::Char('k') | KeyCode::Up => app.urlbar.method_menu.up(),
+                KeyCode::Esc => app.urlbar.method_menu.reset(),
+                KeyCode::Enter => app.urlbar.method_menu.select(),
+                _ => {}
+            };
+
+            for e in app.urlbar.method_menu.drain_events() {
+                // tracing::info!("event: {:?}", e);
+                match e {
+                    tui_menu::MenuEvent::Selected(item) => {
+                        app.urlbar.method_menu.set_child_name(0, item.to_string());
+                        app.urlbar.method_menu.close();
+                        app.urlbar.method = item;
+
+                        // tracing::info!("menu {:?}", app.urlbar.method_menu);
+                    }
+                }
+            }
+        }
         Selected::Urlbar => {}
         Selected::Requestbar => {}
         Selected::Responsebar => {}
