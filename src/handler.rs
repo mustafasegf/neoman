@@ -179,7 +179,15 @@ pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<
                 }
             }
         },
-        Selected::Requestbar => {}
+        Selected::Requestbar => {
+            match key_event.code {
+                KeyCode::Char('h') | KeyCode::Left => app.requestbar.left(),
+                KeyCode::Char('l') | KeyCode::Right => app.requestbar.right(),
+                KeyCode::Char('j') | KeyCode::Down => app.requestbar.left(),
+                KeyCode::Char('k') | KeyCode::Up => app.requestbar.right(),
+                _ => {}
+            };
+        }
         Selected::Responsebar => {}
     }
     Ok(())

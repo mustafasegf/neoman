@@ -55,14 +55,7 @@ pub fn sidebar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) 
 pub fn mainbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints(
-            [
-                Constraint::Min(3),
-                Constraint::Min(3),
-                Constraint::Min(7),
-            ]
-            .as_ref(),
-        )
+        .constraints([Constraint::Min(3), Constraint::Min(3), Constraint::Min(7)].as_ref())
         .split(area);
 
     let direction = match chunks[2].height > 25 {
@@ -171,9 +164,13 @@ pub fn requestbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rec
         .map(|item| Line::from(item.to_string()))
         .collect();
 
+    let idx = RequestMenu::iter()
+        .position(|item| item == app.requestbar.request_menu)
+        .unwrap_or_default();
+
     let tabs = Tabs::new(titles)
         // .block(Block::default())
-        .select(0)
+        .select(idx)
         .style(style)
         .highlight_style(highlight_style);
 
