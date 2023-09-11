@@ -5,7 +5,7 @@ use crate::{
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 /// Handles the key events and updates the state of [`App`].
-pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
+pub async fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
     // global key handlers
     match key_event.code {
         KeyCode::Char('c') | KeyCode::Char('C') => {
@@ -135,6 +135,9 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
         Selected::Urlbar => match app.urlbar.input_mode {
             InputMode::Normal => match key_event.code {
                 KeyCode::Enter | KeyCode::Char('i') => app.urlbar.input_mode = InputMode::Insert,
+                KeyCode::Char('o') => {
+                    app.request().await;
+                }
                 _ => {}
             },
             InputMode::Insert => {
@@ -176,17 +179,6 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                 }
             }
         },
-        // match key_event.code {
-        // KeyCode::Enter => match app.urlbar.input_mode {
-        //     InputMode::Normal => {
-        //         app.urlbar.input_mode = InputMode::Insert;
-        //     }
-        //     InputMode::Insert => {
-        //         app.urlbar.input_mode = InputMode::Normal;
-        //     }
-        // },
-        // _ => {}
-        // },
         Selected::Requestbar => {}
         Selected::Responsebar => {}
     }

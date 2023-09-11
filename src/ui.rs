@@ -59,16 +59,24 @@ pub fn mainbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) 
             [
                 Constraint::Min(3),
                 Constraint::Min(3),
-                Constraint::Ratio(1, 2),
-                Constraint::Ratio(1, 2),
+                Constraint::Min(7),
             ]
             .as_ref(),
         )
         .split(area);
 
+    let direction = match chunks[2].height > 25 {
+        true => Direction::Vertical,
+        false => Direction::Horizontal,
+    };
+    let lower_chunks = Layout::default()
+        .direction(direction)
+        .constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)].as_ref())
+        .split(chunks[2]);
+
     tabs(app, frame, chunks[0]);
-    requestbar(app, frame, chunks[2]);
-    responsebar(app, frame, chunks[3]);
+    requestbar(app, frame, lower_chunks[0]);
+    responsebar(app, frame, lower_chunks[1]);
     urlbar(app, frame, chunks[1]);
 }
 

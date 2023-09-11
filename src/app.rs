@@ -1,5 +1,7 @@
 use std::error;
+use reqwest::{RequestBuilder, Request, IntoUrl, Url};
 use strum::IntoEnumIterator;
+
 
 use tui_menu::{MenuItem, MenuState};
 use tui_tree_widget::TreeItem;
@@ -145,5 +147,39 @@ impl App {
             true => self.sidebar.size,
             false => 0,
         }
+    }
+
+    pub async fn request(&mut self) {
+        let client = reqwest::Client::new();
+        // client.get(&self.urlbar.text);
+
+        let method = match self.urlbar.method {
+            Method::Get => reqwest::Method::GET,
+            Method::Post => reqwest::Method::POST,
+            Method::Put => reqwest::Method::PUT,
+            Method::Delete => reqwest::Method::DELETE,
+            Method::Patch => reqwest::Method::PATCH,
+            Method::Head => reqwest::Method::HEAD,
+            Method::Options => reqwest::Method::OPTIONS,
+        };
+
+        // let url = if self.urlbar.text.starts_with("http") {
+        //     Url::parse(&self.urlbar.text).unwrap()
+        // } else {
+        //     Url::parse(&format!("https://{}", &self.urlbar.text)).unwrap()
+        // };
+
+        let url = match Url::parse(&self.urlbar.text) {
+            Ok(url) => url,
+            Err(_) => Url::parse(&format!("https://{}", &self.urlbar.text)).unwrap(),
+        };
+
+        // let url = Url::parse(&self.urlbar.text).unwrap();
+        let req = reqwest::Request::new(method, url);
+
+        let res = client.execute(req).await.unwrap();
+        let body = res.text().await.unwrap_or_default();
+
+        self.responsebar.body = body;
     }
 }
