@@ -8,7 +8,7 @@ use tui_tree_widget::Tree;
 
 use crate::{
     app::{App, Selected},
-    component::requestbar::RequestMenu,
+    component::{requestbar::RequestMenu, urlbar::InputMode},
 };
 
 pub const HIGHLIGHT_STYLE: Style = Style::new()
@@ -17,6 +17,8 @@ pub const HIGHLIGHT_STYLE: Style = Style::new()
     .bg(Color::DarkGray);
 
 pub const SELECTED_STYLE: Style = Style::new().fg(Color::LightGreen);
+
+pub const INSERT_STYLE: Style = Style::new().fg(Color::LightYellow);
 
 pub const DEFAULT_STYLE: Style = Style::new().fg(Color::White);
 
@@ -98,10 +100,12 @@ pub fn urlbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
         false => (DEFAULT_STYLE, DEFAULT_STYLE),
     };
 
-    let (url_style, _url_highlight_style) = match app.selected == Selected::Urlbar {
-        true => (SELECTED_STYLE, HIGHLIGHT_STYLE),
-        false => (DEFAULT_STYLE, DEFAULT_STYLE),
-    };
+    let (url_style, _url_highlight_style) =
+        match (app.selected == Selected::Urlbar, app.urlbar.input_mode) {
+            (true, InputMode::Normal) => (SELECTED_STYLE, HIGHLIGHT_STYLE),
+            (true, InputMode::Insert) => (INSERT_STYLE, HIGHLIGHT_STYLE),
+            (false, _) => (DEFAULT_STYLE, DEFAULT_STYLE),
+        };
 
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
@@ -133,6 +137,15 @@ pub fn urlbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {
     r.y += 1;
 
     frame.render_stateful_widget(menu, r, &mut app.urlbar.method_menu);
+
+    match app.urlbar.input_mode {
+        InputMode::Normal => {}
+
+        InputMode::Insert => frame.set_cursor(
+            chunks[1].x + app.urlbar.cursor_position as u16 + 1,
+            chunks[1].y + 1,
+        ),
+    }
 }
 
 pub fn requestbar<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, area: Rect) {

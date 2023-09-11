@@ -1,4 +1,7 @@
-use crate::app::{App, AppResult, Selected};
+use crate::{
+    app::{App, AppResult, Selected},
+    component::urlbar::InputMode,
+};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 /// Handles the key events and updates the state of [`App`].
@@ -120,19 +123,70 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
             };
 
             for e in app.urlbar.method_menu.drain_events() {
-                // tracing::info!("event: {:?}", e);
                 match e {
                     tui_menu::MenuEvent::Selected(item) => {
                         app.urlbar.method_menu.set_child_name(0, item.to_string());
                         app.urlbar.method_menu.close();
                         app.urlbar.method = item;
-
-                        // tracing::info!("menu {:?}", app.urlbar.method_menu);
                     }
                 }
             }
         }
-        Selected::Urlbar => {}
+        Selected::Urlbar => match app.urlbar.input_mode {
+            InputMode::Normal => match key_event.code {
+                KeyCode::Enter | KeyCode::Char('i') => app.urlbar.input_mode = InputMode::Insert,
+                _ => {}
+            },
+            InputMode::Insert => {
+                match key_event.code {
+                    // KeyCode::Esc => app.urlbar.input_mode = InputMode::Normal,
+                    KeyCode::Enter => app.urlbar.input_mode = InputMode::Normal,
+                    KeyCode::Char(c) => {
+                        app.urlbar.text.insert(app.urlbar.cursor_position, c);
+                        app.urlbar.cursor_position += 1;
+                    }
+                    KeyCode::Backspace => {
+                        if app.urlbar.cursor_position > 0 {
+                            app.urlbar.cursor_position -= 1;
+                            app.urlbar.text.remove(app.urlbar.cursor_position);
+                        }
+                    }
+                    KeyCode::Delete => {
+                        if app.urlbar.cursor_position < app.urlbar.text.len() {
+                            app.urlbar.text.remove(app.urlbar.cursor_position);
+                        }
+                    }
+                    KeyCode::Left => {
+                        if app.urlbar.cursor_position > 0 {
+                            app.urlbar.cursor_position -= 1;
+                        }
+                    }
+                    KeyCode::Right => {
+                        if app.urlbar.cursor_position < app.urlbar.text.len() {
+                            app.urlbar.cursor_position += 1;
+                        }
+                    }
+                    KeyCode::Home => {
+                        app.urlbar.cursor_position = 0;
+                    }
+                    KeyCode::End => {
+                        app.urlbar.cursor_position = app.urlbar.text.len();
+                    }
+                    _ => {}
+                }
+            }
+        },
+        // match key_event.code {
+        // KeyCode::Enter => match app.urlbar.input_mode {
+        //     InputMode::Normal => {
+        //         app.urlbar.input_mode = InputMode::Insert;
+        //     }
+        //     InputMode::Insert => {
+        //         app.urlbar.input_mode = InputMode::Normal;
+        //     }
+        // },
+        // _ => {}
+        // },
         Selected::Requestbar => {}
         Selected::Responsebar => {}
     }

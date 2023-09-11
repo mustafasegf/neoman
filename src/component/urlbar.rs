@@ -19,7 +19,7 @@ impl Default for UrlBar {
             cursor_position: 0,
             input_mode: InputMode::Normal,
             method: Method::Get,
-            method_menu: MenuState::new(vec![MenuItem::group(
+            method_menu: MenuState::new(vec![MenuItem::group( 
                 Method::default().to_string(),
                 Method::iter()
                     .map(|m| MenuItem::item(m.to_string(), m))
@@ -29,7 +29,7 @@ impl Default for UrlBar {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 pub enum InputMode {
     #[default]
     Normal,

@@ -83,7 +83,7 @@ impl Default for App {
 
         Self {
             running: true,
-            selected: Selected::Sidebar,
+            selected: Selected::Urlbar,
             sidebar: SideBar {
                 size: 25,
                 selected: 0,
@@ -95,8 +95,8 @@ impl Default for App {
             },
             tabs: TabBar { selected: 0, tabs },
             urlbar: UrlBar {
-                title: String::from("localhost:8080"),
-                text: String::from("localhost:8080"),
+                title: String::from("https://api.kanye.rest/"),
+                text: String::from("https://api.kanye.rest/"),
                 cursor_position: 0,
                 input_mode: InputMode::Normal,
                 method: Method::Get,
