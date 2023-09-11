@@ -30,3 +30,9 @@ logs
 .env
 *postman_collection.json
 _current_session
+
+
+# Added by cargo
+
+/target
+output.log
